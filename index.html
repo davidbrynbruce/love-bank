@@ -498,12 +498,14 @@ footer.foot p{max-width:70ch}
 (function(){
   "use strict";
 
-  /* Shared account for the two of us. Its password is the gate; access to the
-     table is limited in the database to the account listed in love_bank_users. */
+  /* One common password is the gate. The database checks it (love_bank_login)
+     and hands back a session token; every read and write goes through
+     functions that require a valid token. The table itself is not exposed. */
   var SB_URL = "https://zijtjfdpvkfdxflutmpc.supabase.co";
   var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppanRqZmRwdmtmZHhmbHV0bXBjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxMTE1MjEsImV4cCI6MjEwMzY4NzUyMX0.a80UQAITcOc2cNjhEuTeqb1JbnzpD4BmrlhzwVOrx-4";
-  var SHARED_EMAIL = "davidbrynbruce+lovebank@gmail.com";
-  var TABLE = "love_bank_checkins";
+  var TOKEN_KEY = "love-bank-session";
+  var token = null;
+  try { token = localStorage.getItem(TOKEN_KEY); } catch(e){}
 
   var NEEDS = [
     {k:"affection",   n:"Affection",            d:"Non-sexual warmth: being touched, held, told you're loved, and the small gestures that say you're on their mind."},
@@ -906,7 +908,7 @@ footer.foot p{max-width:70ch}
         var no = h("button", "btn-link", "Keep it"); no.type = "button";
         yes.addEventListener("click", function(){
           yes.disabled = true;
-          sb.from(TABLE).delete().eq("id", r.id).then(function(res){
+          sb.rpc("love_bank_delete", { p_token:token, p_id:r.id }).then(function(res){
             S.confirm = null;
             if(res.error){ renderHistory(); note(writeError(res.error)); return; }
             S.rows = S.rows.filter(function(x){ return x.id !== r.id; });
@@ -968,12 +970,11 @@ footer.foot p{max-width:70ch}
     if(ok) noteTimer = setTimeout(function(){ if(n.textContent === msg) n.hidden = true; }, 6000);
   }
   function isAuthError(e){
-    var m = String((e && (e.message || e.code)) || "");
-    return /jwt|token|401|PGRST301/i.test(m) || (e && e.status === 401);
+    return /not_signed_in/.test(String((e && e.message) || ""));
   }
   function writeError(e){
     if(isAuthError(e)){ setTimeout(lock, 1500); return "You've been signed out. Enter the password again to carry on."; }
-    if(e && e.code === "42501") return "This login isn't set up for the Love Bank yet, so nothing can be saved.";
+    if(e && /not_found/.test(String(e.message || ""))) return "That check-in was deleted on another device.";
     return "Couldn't save just now. Check your connection and try again.";
   }
 
@@ -1138,10 +1139,10 @@ footer.foot p{max-width:70ch}
       person:F.person, date:F.date,
       matters:Object.assign({}, F.matters), met:Object.assign({}, F.met),
       rank:F.rank.filter(function(k){ return !!k; }),
-      notes:{}, updated_at:new Date().toISOString()
+      notes:{}
     };
     NOTES.forEach(function(f){ payload.notes[f.k] = (F.notes[f.k] || "").slice(0, 4000); });
-    var q = F.id ? sb.from(TABLE).update(payload).eq("id", F.id) : sb.from(TABLE).insert(payload);
+    var q = sb.rpc("love_bank_save", { p_token:token, p_id:F.id || null, p_row:payload });
     var btn = $("save"); btn.disabled = true; msg.className = "form-msg"; msg.textContent = "Saving…";
     q.then(function(res){
       btn.disabled = false;
@@ -1177,16 +1178,20 @@ footer.foot p{max-width:70ch}
   try { var v = localStorage.getItem("love-bank-view"); if(v === "beth" || v === "david") S.view = v; } catch(e){}
   renderAll();
 
-  /* ---------- sign-in and data ---------- */
+  /* ---------- password gate and data ---------- */
   var loading = false;
+  function saveToken(t){
+    token = t;
+    try { if(t) localStorage.setItem(TOKEN_KEY, t); else localStorage.removeItem(TOKEN_KEY); } catch(e){}
+  }
   function load(){
     if(!S.authed || loading) return;
     loading = true;
     var slow = setTimeout(function(){ if(!S.loaded) note("Still loading the check-ins. Check your connection if this doesn't clear."); }, 10000);
-    sb.from(TABLE).select("*").order("date", { ascending:true }).order("created_at", { ascending:true }).then(function(res){
+    sb.rpc("love_bank_list", { p_token:token }).then(function(res){
       loading = false; clearTimeout(slow);
       if(res.error){
-        if(isAuthError(res.error)){ lock(); return; }
+        if(isAuthError(res.error)){ saveToken(null); lock(); return; }
         S.loaded = true; note("Couldn't load the check-ins. Reload the page to try again."); renderAll(); return;
       }
       var rows = [];
@@ -1204,14 +1209,11 @@ footer.foot p{max-width:70ch}
     S.authed = true;
     $("gate").hidden = true; $("app").hidden = false;
     renderAll();
-    sb.from("love_bank_users").select("user_id").limit(1).then(function(res){
-      if(!res.error && res.data && !res.data.length) note("This login isn't set up for the Love Bank yet, so nothing can be saved or shown. David needs to finish the setup.");
-    });
     load();
   }
   function lock(){
     S.authed = false; S.loaded = false; S.rows = [];
-    $("app").hidden = true; $("gate").hidden = false;
+    $("app").hidden = true; $("form-view").hidden = true; $("dash").hidden = false; $("gate").hidden = false;
     $("gate-pw").value = "";
     setTimeout(function(){ try { $("gate-pw").focus(); } catch(e){} }, 0);
   }
@@ -1220,25 +1222,30 @@ footer.foot p{max-width:70ch}
     e.preventDefault();
     var pw = $("gate-pw").value, err = $("gate-err"), btn = $("gate-btn");
     if(!pw){ err.textContent = "Enter the password."; return; }
-    if(!sb){ err.textContent = "The page couldn't load its sign-in code. Check your connection and reload."; return; }
+    if(!sb){ err.textContent = "The page couldn't load properly. Check your connection and reload."; return; }
     btn.disabled = true; btn.textContent = "Opening…"; err.textContent = "";
-    sb.auth.signInWithPassword({ email:SHARED_EMAIL, password:pw }).then(function(res){
+    sb.rpc("love_bank_login", { p_password:pw }).then(function(res){
       btn.disabled = false; btn.textContent = "Open";
       if(res.error){
         var m = String(res.error.message || "");
-        err.textContent = /invalid/i.test(m) ? "That isn't the password." : /rate|many/i.test(m) ? "Too many tries. Wait a few minutes and try again." : "Couldn't sign in: " + m;
-        $("gate-pw").select();
+        err.textContent = /too_many_attempts/.test(m) ? "Too many wrong tries. Wait 15 minutes and try again."
+          : /not_set_up/.test(m) ? "The password hasn't been set yet."
+          : "Couldn't check the password. Try again in a moment.";
         return;
       }
+      if(!res.data){ err.textContent = "That isn't the password."; $("gate-pw").select(); return; }
+      saveToken(res.data);
       unlock();
     }, function(){
       btn.disabled = false; btn.textContent = "Open";
-      err.textContent = "Couldn't reach the sign-in server. Check your connection.";
+      err.textContent = "Couldn't reach the server. Check your connection.";
     });
   });
   $("sign-out").addEventListener("click", function(){
-    var done = function(){ lock(); };
-    sb.auth.signOut().then(done, done);
+    var t = token;
+    saveToken(null);
+    lock();
+    if(t) sb.rpc("love_bank_logout", { p_token:t }).then(function(){}, function(){});
   });
   document.addEventListener("visibilitychange", function(){
     if(document.visibilityState === "visible" && S.authed && $("form-view").hidden) load();
@@ -1246,16 +1253,11 @@ footer.foot p{max-width:70ch}
 
   if(!window.supabase || !window.supabase.createClient){
     $("gate").hidden = false;
-    $("gate-err").textContent = "The page couldn't load its sign-in code. Check your connection and reload.";
+    $("gate-err").textContent = "The page couldn't load properly. Check your connection and reload.";
     return;
   }
-  sb = window.supabase.createClient(SB_URL, SB_KEY, { auth:{ persistSession:true, autoRefreshToken:true, storageKey:"love-bank-auth" } });
-  sb.auth.getSession().then(function(res){
-    if(res && res.data && res.data.session) unlock(); else lock();
-  }, lock);
-  sb.auth.onAuthStateChange(function(event){
-    if(event === "SIGNED_OUT" && S.authed) lock();
-  });
+  sb = window.supabase.createClient(SB_URL, SB_KEY, { auth:{ persistSession:false, autoRefreshToken:false, detectSessionInUrl:false } });
+  if(token) unlock(); else lock();
 })();
 </script>
 </body>
