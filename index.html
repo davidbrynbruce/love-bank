@@ -307,6 +307,18 @@ footer.foot p{max-width:70ch}
 .gate input{font-family:inherit;font-size:16px;color:#2b1a23;background:#f7f0e9;border:1px solid var(--gold);border-radius:3px;padding:12px 13px;width:100%}
 .gate input:focus-visible{outline:2px solid var(--band-ink);outline-offset:2px}
 .gate-err{color:#f2a3a3;font-size:14px;min-height:1.4em}
+/* go deeper */
+.deep summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto 1fr;gap:2px 12px;align-items:start}
+.deep summary::-webkit-details-marker{display:none}
+.deep summary::before{content:"+";grid-row:span 2;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;margin-top:3px;border:1px solid var(--accent);border-radius:50%;color:var(--accent);font-size:17px;line-height:1}
+.deep[open] summary::before{content:"–"}
+.deep-title{font-family:var(--font-display);font-size:26px;font-weight:500;line-height:1.2}
+.deep-opt{font-family:var(--font-body);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;margin-left:8px;vertical-align:middle}
+.deep-sub{color:var(--ink-soft);font-size:14px}
+.deep[open] summary{margin-bottom:18px}
+.deep summary:hover .deep-title{color:var(--accent)}
+.hdeep{grid-column:1/-1;border-top:1px solid var(--line);padding-top:12px}
+.hdeep .ql{color:var(--accent)}
 .btn-out{background:none;border:1px solid var(--line);border-radius:3px;color:var(--ink-soft);font-size:13px;font-weight:700;padding:6px 12px;cursor:pointer}
 .btn-out:hover{color:var(--accent);border-color:var(--accent)}
 
@@ -485,6 +497,14 @@ footer.foot p{max-width:70ch}
 
     <div class="panel fsec" id="f-notes"></div>
 
+    <details class="panel deep" id="f-deep">
+      <summary>
+        <span class="deep-title">Go deeper <span class="deep-opt">optional</span></span>
+        <span class="deep-sub" id="f-deep-sub">Longer questions that turn the numbers into specifics. Worth doing on your first check-in, then every few months.</span>
+      </summary>
+      <div class="fsec" id="f-deep-body"></div>
+    </details>
+
     <div class="submit-row">
       <button type="submit" class="btn-accent" id="save">Save check-in</button>
       <p class="form-msg" id="form-msg" role="status"></p>
@@ -530,6 +550,36 @@ footer.foot p{max-width:70ch}
     {k:"more",        label:"One thing for the next two weeks", hint:"Small and specific enough to actually do. This shows on the tracker as the focus for the other person."},
     {k:"other",       label:"Anything else",                    hint:"Whatever the above didn't ask about."}
   ];
+  /* Optional longer questions, from the original "What you need" questionnaire.
+     label/hint take the check-in's context: o = the other person, r = the person's
+     ranked needs (names). hist is the fixed label used in the history view. */
+  var DEEP = [
+    {k:"gap",      hist:"The biggest gap",
+      label:function(c){ return "The biggest gap"; },
+      hint:function(c){ return "Which need has the widest distance between how much it matters and how well it's being met? What does that distance feel like day to day?"; }},
+    {k:"onething", hist:"If one thing changed",
+      label:function(c){ return "If one thing changed"; },
+      hint:function(c){ return "If " + c.o + " got noticeably better at exactly one of these over the next three months, which would make the most difference to how you feel day to day?"; }},
+    {k:"right",    hist:"Top need: a time it went right",
+      label:function(c){ return (c.r[0] || "Your top need") + ": a time it went right"; },
+      hint:function(c){ return "A recent time this need was met well. Be literal: where you were, what " + c.o + " did or said, what made it land."; }},
+    {k:"wrong",    hist:"Top need: what misses",
+      label:function(c){ return (c.r[0] || "Your top need") + ": what " + c.o + " gets wrong"; },
+      hint:function(c){ return "Something " + c.o + " probably thinks counts for this, but doesn't. Or something close that misses."; }},
+    {k:"two",      hist:"Second and third choices",
+      label:function(c){ return c.r[1] && c.r[2] ? c.r[1] + " and " + c.r[2] : c.r[1] || "Your second and third choices"; },
+      hint:function(c){ return "What does a good version of each look like in practice?"; }},
+    {k:"small",    hist:"Something small and repeatable",
+      label:function(c){ return "Something small and repeatable"; },
+      hint:function(c){ return "One thing, small enough to do weekly or daily without becoming a project, that would register with you."; }},
+    {k:"missing",  hist:"What's missing",
+      label:function(c){ return "What's missing"; },
+      hint:function(c){ return "Something you need that none of the ten covers. The list came out of one counsellor's practice in the 1980s, so there's no reason it would be complete."; }},
+    {k:"time",     hist:"Time together",
+      label:function(c){ return "Time together"; },
+      hint:function(c){ return "The book's one concrete prescription is fifteen hours a week of undivided attention to each other. Not in the same room, not both on screens. Roughly what do you get now, and if you had more, what would you want it spent on?"; }}
+  ];
+  var ALL_TEXT = NOTES.concat(DEEP);
   var CYCLE = 14;
   var DRAFT_KEY = "love-bank-draft-v1";
 
@@ -568,7 +618,7 @@ footer.foot p{max-width:70ch}
     if(Array.isArray(d.rank)){
       d.rank.forEach(function(k){ if(NEED_BY[k] && r.rank.indexOf(k) < 0 && r.rank.length < 5) r.rank.push(k); });
     }
-    NOTES.forEach(function(f){ r.notes[f.k] = str(d.notes && d.notes[f.k]); });
+    ALL_TEXT.forEach(function(f){ r.notes[f.k] = str(d.notes && d.notes[f.k], 8000); });
     return r;
   }
   function byDate(a, b){
@@ -814,7 +864,7 @@ footer.foot p{max-width:70ch}
         });
         col.appendChild(ul);
       }
-      [["more", "What " + NAMES[p] + " asked for next"], ["withdrawals", "What cost the most"]].forEach(function(pair){
+      [["more", "What " + NAMES[p] + " asked for next"], ["small", "Something small and repeatable"], ["withdrawals", "What cost the most"]].forEach(function(pair){
         var txt = (last.notes[pair[0]] || "").trim();
         if(!txt) return;
         var q = h("div", "quote");
@@ -946,6 +996,15 @@ footer.foot p{max-width:70ch}
         });
         if(!any) nt.appendChild(h("p", "muted", "No notes written for this check-in."));
         dt.appendChild(nt);
+        var deep = DEEP.filter(function(f){ return (r.notes[f.k] || "").trim(); });
+        if(deep.length){
+          var dp = h("div", "hnotes hdeep");
+          dp.appendChild(h("span", "ql", "Going deeper"));
+          deep.forEach(function(f){
+            var d = h("div"); d.appendChild(h("span", "ql", f.hist)); d.appendChild(h("p", null, r.notes[f.k].trim())); dp.appendChild(d);
+          });
+          dt.appendChild(dp);
+        }
         row.appendChild(dt);
       }
       box.appendChild(row);
@@ -1028,6 +1087,25 @@ footer.foot p{max-width:70ch}
       var ta = document.createElement("textarea"); ta.id = "f-note-" + f.k; ta.setAttribute("data-note", f.k); w.appendChild(ta);
       nb.appendChild(w);
     });
+    var db_ = $("f-deep-body");
+    DEEP.forEach(function(f){
+      var w = h("div", "written");
+      var l = h("label"); l.htmlFor = "f-note-" + f.k; l.id = "f-deep-lab-" + f.k; w.appendChild(l);
+      var hn = h("p", "hint"); hn.id = "f-deep-hint-" + f.k; w.appendChild(hn);
+      var ta = document.createElement("textarea"); ta.id = "f-note-" + f.k; ta.setAttribute("data-note", f.k); w.appendChild(ta);
+      db_.appendChild(w);
+    });
+  }
+  function refreshDeep(){
+    var c = { o:NAMES[OTHER[F.person]], r:F.rank.map(function(k){ return k ? NEED_BY[k].n : ""; }) };
+    DEEP.forEach(function(f){
+      $("f-deep-lab-" + f.k).textContent = f.label(c);
+      $("f-deep-hint-" + f.k).textContent = f.hint(c);
+    });
+    var n = DEEP.filter(function(f){ return (F.notes[f.k] || "").trim(); }).length;
+    $("f-deep-sub").textContent = n
+      ? n + " of " + DEEP.length + " answered. Longer questions that turn the numbers into specifics."
+      : "Longer questions that turn the numbers into specifics. Worth doing on your first check-in, then every few months.";
   }
   function paintForm(){
     var prev = lastFor(F.person, F.id);
@@ -1042,7 +1120,8 @@ footer.foot p{max-width:70ch}
       });
     });
     for(var i = 0; i < 5; i++) $("f-rank-" + i).value = F.rank[i] || "";
-    NOTES.forEach(function(f){ $("f-note-" + f.k).value = F.notes[f.k] || ""; });
+    ALL_TEXT.forEach(function(f){ $("f-note-" + f.k).value = F.notes[f.k] || ""; });
+    refreshDeep();
     $("copy-matters").disabled = !prev;
     $("copy-rank").disabled = !(prev && prev.rank.length);
     $("form-title").textContent = (F.id ? "Edit " : "") + NAMES[F.person] + "'s check-in";
@@ -1085,6 +1164,8 @@ footer.foot p{max-width:70ch}
     $("form-msg").textContent = ""; $("form-msg").className = "form-msg";
     document.querySelectorAll(".need.missing").forEach(function(el){ el.classList.remove("missing"); });
     paintForm();
+    var hasDeep = DEEP.some(function(f){ return (F.notes[f.k] || "").trim(); });
+    $("f-deep").open = hasDeep || (!F.id && !lastFor(F.person, null));
     $("dash").hidden = true; $("story").hidden = true; $("form-view").hidden = false;
     window.scrollTo(0, 0);
   }
@@ -1105,12 +1186,12 @@ footer.foot p{max-width:70ch}
       refreshProgress(); saveDraft(); return;
     }
     if(t.tagName === "SELECT" && t.hasAttribute("data-rank")){
-      F.rank[parseInt(t.getAttribute("data-rank"), 10)] = t.value; refreshDupes(); saveDraft();
+      F.rank[parseInt(t.getAttribute("data-rank"), 10)] = t.value; refreshDupes(); refreshDeep(); saveDraft();
     }
   });
   $("form").addEventListener("input", function(e){
     var t = e.target;
-    if(t.tagName === "TEXTAREA" && t.hasAttribute("data-note")){ F.notes[t.getAttribute("data-note")] = t.value; saveDraft(); }
+    if(t.tagName === "TEXTAREA" && t.hasAttribute("data-note")){ F.notes[t.getAttribute("data-note")] = t.value; saveDraft(); if(t.closest("#f-deep")) refreshDeep(); }
   });
   $("copy-matters").addEventListener("click", function(){
     var prev = lastFor(F.person, F.id); if(!prev) return;
@@ -1141,7 +1222,7 @@ footer.foot p{max-width:70ch}
       rank:F.rank.filter(function(k){ return !!k; }),
       notes:{}
     };
-    NOTES.forEach(function(f){ payload.notes[f.k] = (F.notes[f.k] || "").slice(0, 4000); });
+    ALL_TEXT.forEach(function(f){ payload.notes[f.k] = (F.notes[f.k] || "").slice(0, 8000); });
     var q = sb.rpc("love_bank_save", { p_token:token, p_id:F.id || null, p_row:payload });
     var btn = $("save"); btn.disabled = true; msg.className = "form-msg"; msg.textContent = "Saving…";
     q.then(function(res){
