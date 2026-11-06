@@ -358,7 +358,7 @@ footer.foot p{max-width:70ch}
       <button type="button" class="btn-gold" id="new-btn">New check-in</button>
     </div>
 
-    <section class="story" aria-labelledby="story-h">
+    <section class="story" id="story" aria-labelledby="story-h">
       <h2 class="story-h" id="story-h">Why we're doing this</h2>
       <p class="story-sum">We can both be trying hard and still keep missing each other, because each of us is working from our own list of what love looks like. I've put effort into the things that would make <em>me</em> feel loved, then been puzzled when they didn't land for you. This is how we stop guessing. Every two weeks, each of us says what we need and how it's going. It isn't about keeping score. The point is that asking becomes an ordinary part of us.</p>
       <details class="letter" id="letter">
@@ -1085,11 +1085,11 @@ footer.foot p{max-width:70ch}
     $("form-msg").textContent = ""; $("form-msg").className = "form-msg";
     document.querySelectorAll(".need.missing").forEach(function(el){ el.classList.remove("missing"); });
     paintForm();
-    $("dash").hidden = true; $("form-view").hidden = false;
+    $("dash").hidden = true; $("story").hidden = true; $("form-view").hidden = false;
     window.scrollTo(0, 0);
   }
   function closeForm(){
-    $("form-view").hidden = true; $("dash").hidden = false;
+    $("form-view").hidden = true; $("dash").hidden = false; $("story").hidden = false;
     renderAll();
     window.scrollTo(0, 0);
   }
@@ -1213,7 +1213,7 @@ footer.foot p{max-width:70ch}
   }
   function lock(){
     S.authed = false; S.loaded = false; S.rows = [];
-    $("app").hidden = true; $("form-view").hidden = true; $("dash").hidden = false; $("gate").hidden = false;
+    $("app").hidden = true; $("form-view").hidden = true; $("dash").hidden = false; $("story").hidden = false; $("gate").hidden = false;
     $("gate-pw").value = "";
     setTimeout(function(){ try { $("gate-pw").focus(); } catch(e){} }, 0);
   }
