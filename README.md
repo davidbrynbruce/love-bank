@@ -1,6 +1,7 @@
 # Love Bank
 
-Fortnightly check-in tracker for David and Beth: each rates the ten emotional needs from *His Needs, Her Needs* (how much it matters, how it's going), picks a top five and writes short notes. The page shows each person's love bank balance over time, per-need gaps, where to focus next, and the full history. Built 2026-11-06, moved off a Claude artifact the same day.
+Fortnightly check-in tracker for David and Beth: each rates the ten emotional needs from *His Needs, Her Needs* (how much it matters, how it's going), picks a top five and writes short notes.
+Each need also has an optional "why" comment (stored in `notes.why` as need→text) so the other person can see what sits behind a gap. The page shows each person's love bank balance over time, per-need gaps, where to focus next, and the full history. Built 2026-11-06, moved off a Claude artifact the same day.
 
 ## Live pieces
 

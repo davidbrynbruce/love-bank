@@ -191,6 +191,17 @@ select{font-family:inherit;font-size:14px;color:var(--ink);background:var(--surf
 .need-more summary{cursor:pointer;color:var(--accent);font-size:13.5px;font-weight:700;display:inline-block;padding:4px 0}
 .need-more[open] summary{margin-bottom:8px}
 .need-more .meaning{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:12px 14px}
+.why{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.why label{font-size:14.5px;font-weight:700}
+.why .opt{font-weight:400;color:var(--ink-soft);font-size:13px;margin-left:4px}
+.why textarea{min-height:60px;font-size:14.5px}
+.wblock{font-size:14.5px;border-left:3px solid var(--line);padding:2px 0 2px 12px;margin:0 0 12px}
+.wblock.lwhy{margin-left:34px}
+.wblock .ql{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;margin-bottom:2px}
+.wblock p{font-family:var(--font-display);font-style:italic;font-size:18px;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere}
+.flist li{flex-wrap:wrap}
+.fwhy{flex-basis:100%;font-family:var(--font-display);font-style:italic;font-size:17px;line-height:1.35;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}
+.hwhy{margin-top:4px}
 .glossary summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:3px}
 .glossary summary::-webkit-details-marker{display:none}
 .g-title{font-family:var(--font-display);font-size:clamp(25px,4.6vw,30px);line-height:1.15;font-weight:500}
@@ -593,6 +604,12 @@ footer.foot p{max-width:70ch}
   };
   var NEED_BY = {};
   NEEDS.forEach(function(n, i){ n.i = i; NEED_BY[n.k] = n; n.m = MEANING[n.k].m; n.x = MEANING[n.k].x; });
+  function whyBlock(text, label, cls){
+    var w = h("div", "wblock" + (cls ? " " + cls : ""));
+    w.appendChild(h("span", "ql", label));
+    w.appendChild(h("p", null, text));
+    return w;
+  }
   function meaningBlock(n){
     var w = h("div", "meaning");
     w.appendChild(h("p", null, n.m));
@@ -643,6 +660,7 @@ footer.foot p{max-width:70ch}
   var ALL_TEXT = NOTES.concat(DEEP);
   var CYCLE = 14;
   var DRAFT_KEY = "love-bank-draft-v1";
+  var WHY_MAX = 2000;
 
   var S = { rows:[], loaded:false, authed:false, view:"beth", sort:"priority", open:{}, openNeed:{}, confirm:null };
   var F = null;            // form state
@@ -680,6 +698,9 @@ footer.foot p{max-width:70ch}
       d.rank.forEach(function(k){ if(NEED_BY[k] && r.rank.indexOf(k) < 0 && r.rank.length < 5) r.rank.push(k); });
     }
     ALL_TEXT.forEach(function(f){ r.notes[f.k] = str(d.notes && d.notes[f.k], 8000); });
+    r.why = {};
+    var w = d.notes && d.notes.why;
+    if(w && typeof w === "object") NEEDS.forEach(function(n){ var t = str(w[n.k], WHY_MAX).trim(); if(t) r.why[n.k] = t; });
     return r;
   }
   function byDate(a, b){
@@ -908,6 +929,7 @@ footer.foot p{max-width:70ch}
       if(dc) trd.appendChild(dc); else if(!prev) trd.appendChild(h("span", "empty-cell", "First round"));
       row.appendChild(trd);
       box.appendChild(row);
+      if(last.why[r.n.k]) box.appendChild(whyBlock(last.why[r.n.k], "In " + NAMES[S.view] + "'s words", "lwhy"));
       if(isOpen){ var mb = meaningBlock(r.n); mb.className += " lmeaning"; box.appendChild(mb); }
     });
   }
@@ -930,6 +952,7 @@ footer.foot p{max-width:70ch}
           var li = h("li");
           li.appendChild(h("span", "fn", g.n.n + (g.rank >= 0 ? " · #" + (g.rank + 1) : "")));
           li.appendChild(h("span", "fd", "matters " + g.a + ", going " + g.b));
+          if(last.why[g.n.k]) li.appendChild(h("p", "fwhy", last.why[g.n.k]));
           ul.appendChild(li);
         });
         col.appendChild(ul);
@@ -1058,6 +1081,16 @@ footer.foot p{max-width:70ch}
         dt.appendChild(tbl);
         var nt = h("div", "hnotes");
         var any = false;
+        var whys = NEEDS.filter(function(n){ return r.why[n.k]; });
+        if(whys.length){
+          any = true;
+          var wd = h("div"); wd.appendChild(h("span", "ql", "Behind the ratings"));
+          whys.forEach(function(n){
+            var p = h("p", "hwhy"); p.appendChild(h("strong", null, n.n + ": ")); p.appendChild(document.createTextNode(r.why[n.k]));
+            wd.appendChild(p);
+          });
+          nt.appendChild(wd);
+        }
         NOTES.forEach(function(f){
           var txt = (r.notes[f.k] || "").trim();
           if(!txt) return;
@@ -1109,7 +1142,7 @@ footer.foot p{max-width:70ch}
 
   /* ---------- form ---------- */
   function blankForm(person){
-    return { id:null, person:person, date:iso(today()), matters:{}, met:{}, rank:["","","","",""], notes:{}, createdAt:null };
+    return { id:null, person:person, date:iso(today()), matters:{}, met:{}, rank:["","","","",""], notes:{}, why:{}, createdAt:null };
   }
   function lastFor(p, excludeId){
     var rs = rounds(p).filter(function(r){ return r.id !== excludeId; });
@@ -1141,6 +1174,13 @@ footer.foot p{max-width:70ch}
         var ends = h("div", "ends"); ends.appendChild(h("span", null, q[2])); ends.appendChild(h("span", null, q[3])); w.appendChild(ends);
         card.appendChild(w);
       });
+      var wy = h("div", "why");
+      var wl = h("label"); wl.htmlFor = "f-why-" + n.k; wl.id = "f-why-lab-" + n.k; wy.appendChild(wl);
+      var wt = document.createElement("textarea");
+      wt.id = "f-why-" + n.k; wt.rows = 2; wt.maxLength = WHY_MAX; wt.setAttribute("data-why", n.k);
+      wt.placeholder = "What's happening that puts it here";
+      wy.appendChild(wt);
+      card.appendChild(wy);
       box.appendChild(card);
     });
     var rb = $("f-ranks"), ord = ["1st","2nd","3rd","4th","5th"];
@@ -1195,6 +1235,7 @@ footer.foot p{max-width:70ch}
     });
     for(var i = 0; i < 5; i++) $("f-rank-" + i).value = F.rank[i] || "";
     ALL_TEXT.forEach(function(f){ $("f-note-" + f.k).value = F.notes[f.k] || ""; });
+    NEEDS.forEach(function(n){ $("f-why-" + n.k).value = F.why[n.k] || ""; refreshWhy(n.k); });
     refreshDeep();
     $("copy-matters").disabled = !prev;
     $("copy-rank").disabled = !(prev && prev.rank.length);
@@ -1208,6 +1249,13 @@ footer.foot p{max-width:70ch}
       var sel = $("f-rank-" + i);
       for(var j = 0; j < sel.options.length; j++){ var o = sel.options[j]; if(o.value) o.disabled = chosen[o.value] !== undefined && chosen[o.value] !== i; }
     }
+  }
+  function refreshWhy(k){
+    var a = F.matters[k], b = F.met[k], lab = $("f-why-lab-" + k);
+    if(a === undefined || b === undefined){ lab.textContent = "Why it's at this level"; }
+    else if(a > b){ lab.textContent = "Why is there a gap of " + (a - b) + "?"; }
+    else { lab.textContent = "What's making this work?"; }
+    lab.appendChild(h("span", "opt", " Optional"));
   }
   function missing(){
     return NEEDS.filter(function(n){ return F.matters[n.k] === undefined || F.met[n.k] === undefined; });
@@ -1226,13 +1274,14 @@ footer.foot p{max-width:70ch}
   function clearDraft(){ try { localStorage.removeItem(DRAFT_KEY); } catch(e){} }
   function openForm(row){
     if(row){
-      F = { id:row.id, person:row.person, date:row.date, matters:Object.assign({}, row.matters), met:Object.assign({}, row.met), rank:[0,1,2,3,4].map(function(i){ return row.rank[i] || ""; }), notes:Object.assign({}, row.notes), createdAt:row.createdAt };
+      F = { id:row.id, person:row.person, date:row.date, matters:Object.assign({}, row.matters), met:Object.assign({}, row.met), rank:[0,1,2,3,4].map(function(i){ return row.rank[i] || ""; }), notes:Object.assign({}, row.notes), why:Object.assign({}, row.why), createdAt:row.createdAt };
     } else {
       var d = loadDraft();
       var lastPerson = "beth";
       try { var lp = localStorage.getItem("love-bank-person"); if(lp === "beth" || lp === "david") lastPerson = lp; } catch(e){}
       F = d ? Object.assign(blankForm(d.person), d, { id:null }) : blankForm(lastPerson);
       if(!Array.isArray(F.rank) || F.rank.length !== 5) F.rank = ["","","","",""];
+      if(!F.why || typeof F.why !== "object") F.why = {};
       if(!parseDate(F.date)) F.date = iso(today());
     }
     $("form-msg").textContent = ""; $("form-msg").className = "form-msg";
@@ -1257,6 +1306,7 @@ footer.foot p{max-width:70ch}
       F[t.getAttribute("data-kind")][t.getAttribute("data-need")] = parseInt(t.value, 10);
       var card = $("need-" + t.getAttribute("data-need"));
       if(F.matters[t.getAttribute("data-need")] !== undefined && F.met[t.getAttribute("data-need")] !== undefined) card.classList.remove("missing");
+      refreshWhy(t.getAttribute("data-need"));
       refreshProgress(); saveDraft(); return;
     }
     if(t.tagName === "SELECT" && t.hasAttribute("data-rank")){
@@ -1266,6 +1316,7 @@ footer.foot p{max-width:70ch}
   $("form").addEventListener("input", function(e){
     var t = e.target;
     if(t.tagName === "TEXTAREA" && t.hasAttribute("data-note")){ F.notes[t.getAttribute("data-note")] = t.value; saveDraft(); if(t.closest("#f-deep")) refreshDeep(); }
+    if(t.tagName === "TEXTAREA" && t.hasAttribute("data-why")){ F.why[t.getAttribute("data-why")] = t.value; saveDraft(); }
   });
   $("copy-matters").addEventListener("click", function(){
     var prev = lastFor(F.person, F.id); if(!prev) return;
@@ -1297,6 +1348,8 @@ footer.foot p{max-width:70ch}
       notes:{}
     };
     ALL_TEXT.forEach(function(f){ payload.notes[f.k] = (F.notes[f.k] || "").slice(0, 8000); });
+    payload.notes.why = {};
+    NEEDS.forEach(function(n){ var t = (F.why[n.k] || "").trim().slice(0, WHY_MAX); if(t) payload.notes.why[n.k] = t; });
     var q = sb.rpc("love_bank_save", { p_token:token, p_id:F.id || null, p_row:payload });
     var btn = $("save"); btn.disabled = true; msg.className = "form-msg"; msg.textContent = "Saving…";
     q.then(function(res){
