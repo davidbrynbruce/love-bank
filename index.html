@@ -178,7 +178,29 @@ select{font-family:inherit;font-size:14px;color:var(--ink);background:var(--surf
 .lrow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) 92px 130px;gap:8px 18px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
 .lrow.head{border-top:0;padding:0 0 6px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
 .lname{display:flex;align-items:center;gap:10px;min-width:0}
-.lname h3{font-size:20px;line-height:1.15}
+.lname h3{font-size:20px;line-height:1.15;min-width:0}
+.need-btn{display:inline-flex;align-items:center;gap:8px;background:none;border:0;padding:2px 0;margin:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.need-btn:hover{color:var(--accent)}
+.info{flex:none;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid var(--ink-soft);color:var(--ink-soft);font-family:var(--font-body);font-size:11px;font-weight:700;font-style:normal}
+.need-btn:hover .info,.need-btn[aria-expanded="true"] .info{border-color:var(--accent);color:var(--accent)}
+.meaning.lmeaning{max-width:none;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:12px 15px;margin:0 0 12px}
+.meaning{display:flex;flex-direction:column;gap:8px;font-size:14.5px;max-width:72ch}
+.meaning-x{color:var(--ink-soft)}
+.meaning-l{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:2px}
+.need-more{margin:-6px 0 14px}
+.need-more summary{cursor:pointer;color:var(--accent);font-size:13.5px;font-weight:700;display:inline-block;padding:4px 0}
+.need-more[open] summary{margin-bottom:8px}
+.need-more .meaning{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:12px 14px}
+.glossary summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:3px}
+.glossary summary::-webkit-details-marker{display:none}
+.g-title{font-family:var(--font-display);font-size:clamp(25px,4.6vw,30px);line-height:1.15;font-weight:500}
+.g-title::after{content:" +";color:var(--accent)}
+.glossary[open] .g-title::after{content:" –"}
+.glossary summary:hover .g-title{color:var(--accent)}
+.g-sub{color:var(--ink-soft);font-size:14.5px}
+.glist{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px 28px;margin-top:18px}
+.gitem{border-top:1px solid var(--line);padding-top:12px;min-width:0}
+.gitem h3{font-size:21px;margin-bottom:6px}
 .rank{flex:none;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
 .rank.on{background:var(--accent);color:var(--accent-ink)}
 .rank.off{border:1px dashed var(--line);color:transparent}
@@ -443,6 +465,13 @@ footer.foot p{max-width:70ch}
     <div class="diffs" id="diffs"></div>
   </section>
 
+  <section class="panel" id="glossary-panel">
+    <details class="glossary" id="glossary">
+      <summary><span class="g-title">What the ten needs mean</span><span class="g-sub">What each need covers, with examples of what meeting it can look like day to day.</span></summary>
+      <div class="glist" id="glist"></div>
+    </details>
+  </section>
+
   <section class="panel" id="history-panel">
     <div class="panel-head"><h2>Check-in history</h2></div>
     <div class="hist" id="history"></div>
@@ -539,8 +568,40 @@ footer.foot p{max-width:70ch}
     {k:"family",      n:"Family commitment",    d:"Them being actively invested in the kids: school, character, time together."},
     {k:"admiration",  n:"Admiration",           d:"Being told what they respect about you, and knowing they're proud of you."}
   ];
+  /* m = what the need means; x = what meeting it can look like day to day. In our own words. */
+  var MEANING = {
+    affection:   { m:"Care shown in ways that aren't about sex: hugs, holding hands, a kiss hello and goodbye, saying \"I love you\", remembering the small things. It's the steady background signal that you matter and you're safe with them.",
+                   x:"A hug when they walk in. A text in the middle of the day. Holding hands on a walk. Flowers or a small gift for no reason." },
+    intimacy:    { m:"A sexual relationship you both look forward to: enough of it, the kind you each enjoy, and started in a way that feels wanted rather than owed. It includes understanding what the other person needs to feel ready.",
+                   x:"Making time and privacy for it. Talking openly about what works. Affection that isn't always a lead-up. No keeping score." },
+    conversation:{ m:"Talking for its own sake: your day, ideas, worries, plans, each other. Being listened to with full attention and asked follow-up questions, without being lectured, corrected or fixed when you only want to be heard.",
+                   x:"Phones away at dinner. Asking about something they mentioned yesterday. A walk with no agenda. Listening before offering a solution." },
+    recreation:  { m:"Spending free time together doing things you both enjoy, so your partner is your companion of choice. Being the person they want along for the fun, not the one they tell about it afterwards.",
+                   x:"A regular date night. Trying their hobby with real interest. Planning a weekend away. Finding something new you both like." },
+    honesty:     { m:"Trusting that you're getting the full picture: thoughts, feelings, plans, where the time and money go. No surprises and no edited version, including when the truth is uncomfortable.",
+                   x:"Raising what's bothering you before it builds. Talking plans through before making them. Telling the truth when it's awkward. No secrets about money or messages." },
+    attraction:  { m:"Feeling drawn to your partner and knowing they still make an effort for you: health, grooming, how they dress and carry themselves. Also feeling that they find you attractive.",
+                   x:"Dressing up for a date. Looking after your health. Noticing when they look good, and saying so." },
+    finances:    { m:"Confidence that there's enough to live on, that money is handled responsibly and together, and that you aren't carrying the worry or the planning on your own.",
+                   x:"Agreeing a budget together. Being open about spending. Working toward shared goals. Not leaving one person to sort out the bills." },
+    domestic:    { m:"Running the home shared fairly and willingly: chores, meals, admin, schedules, and the mental load of remembering what needs doing. Owning parts of it, not \"helping\".",
+                   x:"Noticing what needs doing without being asked. Taking a job off their list for good. An evening routine you both carry." },
+    family:      { m:"Being actively involved in raising the kids and in family life: time with them, their schooling and character, and doing things as a family. A partner in parenting, not an assistant.",
+                   x:"Doing bedtime or homework regularly. Knowing their teachers and friends. Planning family outings. Backing each other up on decisions." },
+    admiration:  { m:"Being appreciated and respected: hearing what your partner values about you, being spoken well of to others, and not being criticised or belittled. Knowing they're proud of you and would choose you again.",
+                   x:"Saying specifically what you admire. Thanking them for things that usually go unnoticed. Praising them in front of others. Holding back the criticism." }
+  };
   var NEED_BY = {};
-  NEEDS.forEach(function(n, i){ n.i = i; NEED_BY[n.k] = n; });
+  NEEDS.forEach(function(n, i){ n.i = i; NEED_BY[n.k] = n; n.m = MEANING[n.k].m; n.x = MEANING[n.k].x; });
+  function meaningBlock(n){
+    var w = h("div", "meaning");
+    w.appendChild(h("p", null, n.m));
+    var ex = h("p", "meaning-x");
+    ex.appendChild(h("span", "meaning-l", "What it can look like"));
+    ex.appendChild(document.createTextNode(n.x));
+    w.appendChild(ex);
+    return w;
+  }
   var NAMES = {beth:"Beth", david:"David"};
   var OTHER = {beth:"david", david:"beth"};
   var ORDER = ["beth","david"];
@@ -583,7 +644,7 @@ footer.foot p{max-width:70ch}
   var CYCLE = 14;
   var DRAFT_KEY = "love-bank-draft-v1";
 
-  var S = { rows:[], loaded:false, authed:false, view:"beth", sort:"priority", open:{}, confirm:null };
+  var S = { rows:[], loaded:false, authed:false, view:"beth", sort:"priority", open:{}, openNeed:{}, confirm:null };
   var F = null;            // form state
   var sb = null;
 
@@ -809,7 +870,15 @@ footer.foot p{max-width:70ch}
       var rk = h("span", "rank " + (r.rank >= 0 ? "on" : "off"), r.rank >= 0 ? String(r.rank + 1) : "·");
       rk.title = r.rank >= 0 ? "Number " + (r.rank + 1) + " in " + NAMES[S.view] + "'s top five" : "Not in the top five";
       nm.appendChild(rk);
-      var t = h("h3", null, r.n.n); t.title = r.n.d; nm.appendChild(t);
+      var isOpen = !!S.openNeed[r.n.k];
+      var t = h("h3");
+      var nb = h("button", "need-btn"); nb.type = "button";
+      nb.title = r.n.d;
+      nb.setAttribute("aria-expanded", String(isOpen));
+      nb.appendChild(h("span", null, r.n.n));
+      nb.appendChild(h("span", "info", isOpen ? "–" : "i"));
+      nb.addEventListener("click", function(){ S.openNeed[r.n.k] = !S.openNeed[r.n.k]; renderNeeds(); });
+      t.appendChild(nb); nm.appendChild(t);
       row.appendChild(nm);
 
       var bar = h("div", "lbar");
@@ -839,6 +908,7 @@ footer.foot p{max-width:70ch}
       if(dc) trd.appendChild(dc); else if(!prev) trd.appendChild(h("span", "empty-cell", "First round"));
       row.appendChild(trd);
       box.appendChild(row);
+      if(isOpen){ var mb = meaningBlock(r.n); mb.className += " lmeaning"; box.appendChild(mb); }
     });
   }
 
@@ -978,7 +1048,7 @@ footer.foot p{max-width:70ch}
         tbl.appendChild(thead);
         NEEDS.forEach(function(n){
           var tr = h("tr");
-          tr.appendChild(h("td", null, n.n));
+          var nc = h("td", null, n.n); nc.title = n.m; tr.appendChild(nc);
           tr.appendChild(h("td", null, r.matters[n.k] !== undefined ? String(r.matters[n.k]) : "–"));
           tr.appendChild(h("td", null, r.met[n.k] !== undefined ? String(r.met[n.k]) : "–"));
           var rk = r.rank.indexOf(n.k);
@@ -1051,6 +1121,10 @@ footer.foot p{max-width:70ch}
       var card = h("div", "need"); card.id = "need-" + n.k;
       card.appendChild(h("h3", null, n.n));
       card.appendChild(h("p", "desc", n.d));
+      var more = h("details", "need-more");
+      more.appendChild(h("summary", null, "What this means"));
+      more.appendChild(meaningBlock(n));
+      card.appendChild(more);
       [["matters", "How much it matters to me", "Could live without it", "Essential to me"], ["met", "How it's going right now", "Not at all", "Completely"]].forEach(function(q){
         var w = h("div", "q");
         var lab = h("span", "q-label", q[1]); lab.id = "lab-" + q[0] + "-" + n.k; w.appendChild(lab);
@@ -1254,6 +1328,13 @@ footer.foot p{max-width:70ch}
   (function(){
     var en = $("empty-needs");
     NEEDS.forEach(function(n){ en.appendChild(h("li", null, n.n)); });
+    var gl = $("glist");
+    NEEDS.forEach(function(n){
+      var it = h("div", "gitem");
+      it.appendChild(h("h3", null, n.n));
+      it.appendChild(meaningBlock(n));
+      gl.appendChild(it);
+    });
   })();
   buildForm();
   try { var v = localStorage.getItem("love-bank-view"); if(v === "beth" || v === "david") S.view = v; } catch(e){}
