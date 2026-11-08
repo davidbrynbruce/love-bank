@@ -408,6 +408,10 @@ footer.foot p{max-width:70ch}
 .talk-nav .btn-accent{padding:12px 20px}
 .talk-nav .btn-sub{padding:11px 14px}
 .talk-pos{text-align:center;font-size:13.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.talk-bar{position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--line);padding-block:max(10px,env(safe-area-inset-top,0px)) 10px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;box-shadow:0 6px 10px -10px rgba(0,0,0,.35)}
+.talk-bar .tb-l{display:block;font-family:var(--font-body);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;line-height:1.3}
+.talk-bar .tb-name{font-family:var(--font-display);font-size:clamp(30px,7vw,40px);font-weight:500;color:var(--ink);line-height:1.05;min-width:0}
+.talk-bar .tb-count{font-size:12.5px;color:var(--ink-soft);white-space:nowrap;font-variant-numeric:tabular-nums}
 .talk-status{font-size:13px;color:var(--ink-soft);min-height:1.4em;text-align:center}
 .talk-status.err{color:var(--bad)}
 .t-sum{display:flex;flex-direction:column;gap:0;margin-top:14px}
@@ -1524,25 +1528,25 @@ footer.foot p{max-width:70ch}
 
   /* Questions for one person about one need, asked by the other. */
   function questionsFor(p, n, r, prev){
-    var o = NAMES[OTHER[p]], a = r.matters[n.k], b = r.met[n.k], qs = [];
+    var o = NAMES[OTHER[p]], a = r.matters[n.k], b = r.met[n.k], qs = [], N1 = n.n, nl = n.n.toLowerCase();
     if(a === undefined || b === undefined) return qs;
     var rk = r.rank.indexOf(n.k);
-    if(rk === 0) qs.push("It's number 1 in your top five. Why this one above everything else?");
-    else if(rk > 0) qs.push("It's number " + (rk + 1) + " in your top five. What puts it there?");
-    else if(a >= 8) qs.push("This matters " + a + " out of 10 to you. Why so much? When do you notice it most?");
-    else if(a <= 4) qs.push("This matters " + a + " out of 10 to you. Is that because it's fine as it is, or because it isn't really you?");
-    else qs.push("Why is this a " + a + " for you, and not higher or lower?");
+    if(rk === 0) qs.push(N1 + " is number 1 in your top five. Why this one above everything else?");
+    else if(rk > 0) qs.push(N1 + " is number " + (rk + 1) + " in your top five. What puts it there?");
+    else if(a >= 8) qs.push(N1 + " matters " + a + " out of 10 to you. Why so much? When do you notice it most?");
+    else if(a <= 4) qs.push(N1 + " matters " + a + " out of 10 to you. Is that because it's fine as it is, or because it isn't really you?");
+    else qs.push("Why is " + nl + " a " + a + " for you, and not higher or lower?");
     var gap = a - b;
     if(gap >= 2){
-      qs.push("You put how it's going at " + b + ". What happened in the last two weeks that made it a " + b + "?");
+      qs.push("You put how " + nl + " is going at " + b + ". What happened in the last two weeks that made it a " + b + "?");
       qs.push("What would " + o + " need to do for it to be a " + Math.min(10, b + 2) + "? Something specific enough to picture.");
     } else if(gap === 1){
-      qs.push("It's close, at " + b + " against " + a + ". What's the small thing still missing?");
+      qs.push(N1 + " is close, at " + b + " against " + a + ". What's the small thing still missing?");
     } else {
-      qs.push("It's going well, at " + b + ". What is " + o + " doing that you want kept up?");
+      qs.push(N1 + " is going well, at " + b + ". What is " + o + " doing that you want kept up?");
     }
     var pb = prev ? prev.met[n.k] : undefined;
-    if(pb !== undefined && Math.abs(b - pb) >= 2) qs.push("It went from " + pb + " to " + b + " since " + fmtShort(prev.date) + ". What changed?");
+    if(pb !== undefined && Math.abs(b - pb) >= 2) qs.push("How " + nl + " is going moved from " + pb + " to " + b + " since " + fmtShort(prev.date) + ". What changed?");
     return qs;
   }
   function personBlock(p, n){
@@ -1579,7 +1583,7 @@ footer.foot p{max-width:70ch}
     if(r.why[n.k]) box.appendChild(whyBlock(r.why[n.k], "In " + NAMES[p] + "'s words"));
     var qs = questionsFor(p, n, r, prev);
     if(qs.length){
-      var ask = h("div", "ask"); ask.appendChild(h("span", "ql", NAMES[OTHER[p]] + " asks " + NAMES[p]));
+      var ask = h("div", "ask"); ask.appendChild(h("span", "ql", NAMES[OTHER[p]] + " asks " + NAMES[p] + " about " + n.n.toLowerCase()));
       var ul = h("ul"); qs.forEach(function(q){ ul.appendChild(h("li", null, q)); }); ask.appendChild(ul);
       box.appendChild(ask);
     }
@@ -1591,11 +1595,11 @@ footer.foot p{max-width:70ch}
     var ab = B.matters[n.k], ad = D.matters[n.k];
     if(ab !== undefined && ad !== undefined && Math.abs(ab - ad) >= 3){
       var hi = ab > ad ? "beth" : "david", lo = OTHER[hi];
-      qs.push("This matters " + B.matters[n.k] + " to Beth and " + D.matters[n.k] + " to David. " + NAMES[hi] + ": what does it feel like when it's missing? " + NAMES[lo] + ": what did you assume it meant to " + NAMES[hi] + "?");
+      qs.push(n.n + " matters " + B.matters[n.k] + " to Beth and " + D.matters[n.k] + " to David. " + NAMES[hi] + ": what does it feel like when it's missing? " + NAMES[lo] + ": what did you assume it meant to " + NAMES[hi] + "?");
     }
     var gb = (ab !== undefined && B.met[n.k] !== undefined) ? ab - B.met[n.k] : 0;
     var gd = (ad !== undefined && D.met[n.k] !== undefined) ? ad - D.met[n.k] : 0;
-    if(gb >= 2 && gd >= 2) qs.push("You both feel a gap here. Is it the same thing missing for each of you, or two different things?");
+    if(gb >= 2 && gd >= 2) qs.push("You both feel a gap in " + n.n.toLowerCase() + ". Is it the same thing missing for each of you, or two different things?");
     return qs;
   }
   function renderTalk(){
@@ -1668,9 +1672,12 @@ footer.foot p{max-width:70ch}
 
     var n = T.list[s - 1];
     var card = h("section", "t-need");
+    var bar = h("div", "talk-bar");
+    var bh = h("h2", "tb-name"); bh.appendChild(h("span", "tb-l", "Talking about")); bh.appendChild(document.createTextNode(n.n));
+    bar.appendChild(bh);
+    bar.appendChild(h("span", "tb-count", "Need " + s + " of " + N));
+    card.appendChild(bar);
     var top = h("div");
-    top.appendChild(h("p", "t-eyebrow", "Need " + s + " of " + N));
-    top.appendChild(h("h2", "t-title", n.n));
     top.appendChild(h("p", "desc", n.d));
     var more = h("details", "need-more"); more.style.margin = "6px 0 0";
     more.appendChild(h("summary", null, "What this means")); more.appendChild(meaningBlock(n));
@@ -1681,12 +1688,12 @@ footer.foot p{max-width:70ch}
     card.appendChild(people);
     var tq = togetherQs(n);
     if(tq.length){
-      var tg = h("div", "together"); tg.appendChild(h("span", "ql", "Both of you"));
+      var tg = h("div", "together"); tg.appendChild(h("span", "ql", "Both of you, on " + n.n.toLowerCase()));
       var tul = h("ul"); tq.forEach(function(q){ tul.appendChild(h("li", null, q)); }); tg.appendChild(tul);
       card.appendChild(tg);
     }
     var ag = h("div", "panel t-agree");
-    var al = h("label", null, "What we'll try"); al.htmlFor = "talk-agree"; ag.appendChild(al);
+    var al = h("label", null, "What we'll try for " + n.n.toLowerCase()); al.htmlFor = "talk-agree"; ag.appendChild(al);
     ag.appendChild(h("p", "hint", "One small, specific thing for the next two weeks, and who'll do it. Optional."));
     var pa = previousAgreement(n.k);
     if(pa){ var pp = h("p", "t-prev"); pp.appendChild(h("strong", null, "Last time (" + fmtShort(pa.date) + "): ")); pp.appendChild(document.createTextNode(pa.notes[n.k])); ag.appendChild(pp); }
