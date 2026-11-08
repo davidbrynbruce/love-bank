@@ -355,6 +355,70 @@ footer.foot p{max-width:70ch}
 .btn-out{background:none;border:1px solid var(--line);border-radius:3px;color:var(--ink-soft);font-size:13px;font-weight:700;padding:6px 12px;cursor:pointer}
 .btn-out:hover{color:var(--accent);border-color:var(--accent)}
 
+/* ---------- talk it through ---------- */
+.btn-line{font-size:15px;font-weight:700;letter-spacing:.02em;color:var(--gold);background:transparent;border:1px solid var(--gold);border-radius:3px;padding:11px 24px;cursor:pointer;width:100%}
+.btn-line:hover{color:var(--band-ink);border-color:var(--band-ink)}
+.talk{padding-bottom:40px}
+.talking header.band{display:none}
+.talk h2.t-title{font-size:clamp(32px,7vw,44px);line-height:1.05}
+.t-eyebrow{font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:6px}
+.t-lead{font-size:16px;max-width:62ch;margin-top:10px}
+.t-rules{margin:16px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:8px;max-width:62ch}
+.t-order{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:18px}
+.t-list{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-direction:column}
+.t-list li{border-top:1px solid var(--line)}
+.t-list button{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:4px 12px;align-items:center;width:100%;background:none;border:0;padding:11px 2px;text-align:left;color:var(--ink);font:inherit;cursor:pointer}
+.t-list button:hover .t-ln{color:var(--accent)}
+.t-num{font-family:var(--font-display);font-size:20px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.t-ln{font-weight:700}
+.t-chips{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.t-done{font-size:12px;color:var(--good);font-weight:700;grid-column:2/-1}
+.t-need{display:flex;flex-direction:column;gap:16px}
+.t-need .desc{color:var(--ink-soft);font-size:15px;margin-top:4px}
+.t-people{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
+.tp{border:1px solid var(--line);border-radius:6px;background:var(--surface);padding:16px 16px 18px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden;min-width:0}
+.tp::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px}
+.tp.beth::before{background:var(--beth)} .tp.david::before{background:var(--david)}
+.tp-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.tp-name{font-family:var(--font-display);font-size:25px;font-weight:600}
+.tp.beth .tp-name{color:var(--beth)} .tp.david .tp-name{color:var(--david)}
+.tp-rank{font-size:12.5px;color:var(--ink-soft);font-weight:700}
+.tp-nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tp-n{display:flex;flex-direction:column;gap:2px}
+.tp-l{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.tp-v{font-family:var(--font-display);font-size:40px;line-height:1;font-variant-numeric:lining-nums tabular-nums}
+.tp-v small{font-size:16px;color:var(--ink-soft)}
+.tp-c{display:flex;align-items:center;min-height:40px}
+.tp-chg{font-size:12.5px;color:var(--ink-soft)}
+.tp .wblock{margin:0}
+.ask{background:var(--bg);border-radius:5px;padding:12px 14px}
+.ask .ql{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin-bottom:6px}
+.tp.beth .ask .ql{color:var(--beth)} .tp.david .ask .ql{color:var(--david)}
+.ask ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:7px;font-size:15px}
+.together{border:1px dashed var(--accent);border-radius:6px;padding:14px 16px;background:var(--accent-soft)}
+.together .ql{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:6px}
+.together ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:7px;font-size:15px}
+.t-agree{display:flex;flex-direction:column;gap:6px}
+.t-agree label{font-family:var(--font-display);font-size:23px;font-weight:500}
+.t-agree .hint{color:var(--ink-soft);font-size:14px}
+.t-agree textarea{min-height:90px;font-size:16px}
+.t-prev{font-size:14px;border-left:3px solid var(--gold);padding:2px 0 2px 12px;color:var(--ink-soft)}
+.t-prev strong{color:var(--ink)}
+.talk-nav{position:sticky;bottom:0;z-index:2;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;background:var(--bg);border-top:1px solid var(--line);padding-block:12px calc(12px + env(safe-area-inset-bottom,0px))}
+.talk-nav .btn-accent{padding:12px 20px}
+.talk-nav .btn-sub{padding:11px 14px}
+.talk-pos{text-align:center;font-size:13.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.talk-status{font-size:13px;color:var(--ink-soft);min-height:1.4em;text-align:center}
+.talk-status.err{color:var(--bad)}
+.t-sum{display:flex;flex-direction:column;gap:0;margin-top:14px}
+.t-sum div{border-top:1px solid var(--line);padding:12px 0}
+.t-sum h3{font-size:21px;margin-bottom:3px}
+.t-sum p{white-space:pre-wrap;overflow-wrap:anywhere}
+.agreed{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:10px 26px}
+.agreed div{border-top:1px solid var(--line);padding-top:10px;min-width:0}
+.agreed h3{font-size:20px;margin-bottom:2px}
+.agreed p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px}
+
 @media (max-width:760px){
   .lrow{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"name gap" "bar bar" "trend trend"}
   .lrow.head{display:none}
@@ -401,6 +465,7 @@ footer.foot p{max-width:70ch}
         <span class="due-sub" id="due-sub">No check-ins recorded yet.</span>
       </div>
       <button type="button" class="btn-gold" id="new-btn">New check-in</button>
+      <button type="button" class="btn-line" id="talk-btn" hidden>Talk it through</button>
     </div>
 
     <section class="story" id="story" aria-labelledby="story-h">
@@ -467,6 +532,15 @@ footer.foot p{max-width:70ch}
     <div class="panel-head"><h2>Where to focus next</h2></div>
     <p class="panel-intro">The biggest gaps from each person's latest check-in, weighted by how much the need matters and where it sits in their top five. These are the deposits the other person can make over the next two weeks.</p>
     <div class="two" id="focus"></div>
+  </section>
+
+  <section class="panel" id="agreed-panel" hidden>
+    <div class="panel-head">
+      <h2>What we agreed</h2>
+      <button type="button" class="btn-sub" id="agreed-open">Open the talk</button>
+    </div>
+    <p class="panel-intro" id="agreed-intro"></p>
+    <div class="agreed" id="agreed"></div>
   </section>
 
   <section class="panel" id="tops-panel">
@@ -550,6 +624,19 @@ footer.foot p{max-width:70ch}
       <p class="form-msg" id="form-msg" role="status"></p>
     </div>
   </form>
+</main>
+
+<main class="wrap talk" id="talk-view" hidden>
+  <div class="fhead">
+    <button type="button" class="back" id="talk-back">← Back to the tracker</button>
+  </div>
+  <div id="talk-body"></div>
+  <nav class="talk-nav" id="talk-nav" aria-label="Move between needs">
+    <button type="button" class="btn-sub" id="talk-prev">← Back</button>
+    <span class="talk-pos" id="talk-pos"></span>
+    <button type="button" class="btn-accent" id="talk-next">Next →</button>
+  </nav>
+  <p class="talk-status" id="talk-status" role="status"></p>
 </main>
 </div>
 
@@ -662,7 +749,9 @@ footer.foot p{max-width:70ch}
   var DRAFT_KEY = "love-bank-draft-v1";
   var WHY_MAX = 2000;
 
-  var S = { rows:[], loaded:false, authed:false, view:"beth", sort:"priority", open:{}, openNeed:{}, confirm:null };
+  var S = { rows:[], talks:[], loaded:false, authed:false, view:"beth", sort:"priority", open:{}, openNeed:{}, confirm:null };
+  var T = null;            // talk-it-through state
+  var AGREE_MAX = 2000;
   var F = null;            // form state
   var sb = null;
 
@@ -1119,8 +1208,9 @@ footer.foot p{max-width:70ch}
     $("empty").hidden = !empty;
     ["trend-panel", "needs-panel", "focus-panel", "tops-panel", "history-panel"].forEach(function(id){ $(id).hidden = empty || !S.loaded; });
     $("new-btn").hidden = !S.authed;
+    $("talk-btn").hidden = !S.authed || !S.loaded || empty;
     $("empty-btn").hidden = !S.authed;
-    renderDue(); renderBalances();
+    renderDue(); renderBalances(); renderAgreed();
     if(S.loaded && !empty){ renderTrend(); renderNeeds(); renderFocus(); renderTops(); renderHistory(); }
   }
 
@@ -1366,6 +1456,302 @@ footer.foot p{max-width:70ch}
     });
   });
 
+  /* ---------- talk it through ---------- */
+  function cleanTalk(d){
+    if(!d || !parseDate(d.date)) return null;
+    var t = { id:String(d.id), date:d.date, createdAt:str(d.created_at, 40), notes:{} };
+    if(d.notes && typeof d.notes === "object") NEEDS.forEach(function(n){ var s = str(d.notes[n.k], AGREE_MAX).trim(); if(s) t.notes[n.k] = s; });
+    return t;
+  }
+  function talksSorted(){ return S.talks.slice().sort(byDate); }
+  function loadTalks(){
+    sb.rpc("love_bank_talks_list", { p_token:token }).then(function(res){
+      if(res.error) return;
+      var out = [];
+      (res.data || []).forEach(function(d){ var t = cleanTalk(d); if(t) out.push(t); });
+      S.talks = out;
+      if($("form-view").hidden && $("talk-view").hidden) renderAgreed();
+    }, function(){});
+  }
+  function latestOf(p){ var rs = rounds(p); return rs.length ? rs[rs.length-1] : null; }
+  function prevOf(p){ var rs = rounds(p); return rs.length > 1 ? rs[rs.length-2] : null; }
+  function talkOrder(how){
+    var L = { beth:latestOf("beth"), david:latestOf("david") };
+    var W = {};
+    NEEDS.forEach(function(n){ W[n.k] = 0; });
+    ORDER.forEach(function(p){ if(L[p]) gapsOf(L[p]).forEach(function(g){ W[g.n.k] += g.w; }); });
+    NEEDS.forEach(function(n){
+      if(L.beth && L.david && L.beth.matters[n.k] !== undefined && L.david.matters[n.k] !== undefined && Math.abs(L.beth.matters[n.k] - L.david.matters[n.k]) >= 3) W[n.k] += 0.5;
+    });
+    var list = NEEDS.slice();
+    function rk(p, k){ var i = L[p] ? L[p].rank.indexOf(k) : -1; return i < 0 ? 99 : i; }
+    list.sort(function(x, y){
+      if(how === "book") return x.i - y.i;
+      if(how === "beth" || how === "david") return (rk(how, x.k) - rk(how, y.k)) || (W[y.k] - W[x.k]) || (x.i - y.i);
+      return (W[y.k] - W[x.k]) || (x.i - y.i);
+    });
+    return list;
+  }
+  function openTalk(){
+    var day = iso(today());
+    var existing = S.talks.filter(function(t){ return t.date === day; })[0];
+    var how = "gap";
+    try { var o = localStorage.getItem("love-bank-talk-order"); if(["gap","beth","david","book"].indexOf(o) >= 0) how = o; } catch(e){}
+    T = { id:existing ? existing.id : null, date:day, notes:existing ? Object.assign({}, existing.notes) : {}, how:how, list:talkOrder(how), step:0, dirty:false, saving:false, again:false, timer:null };
+    $("talk-status").textContent = ""; $("talk-status").className = "talk-status";
+    $("dash").hidden = true; $("story").hidden = true; $("form-view").hidden = true; $("talk-view").hidden = false;
+    $("app").classList.add("talking");
+    renderTalk();
+    window.scrollTo(0, 0);
+  }
+  function closeTalk(){
+    flushTalk();
+    $("talk-view").hidden = true; $("dash").hidden = false; $("story").hidden = false;
+    $("app").classList.remove("talking");
+    renderAll();
+    window.scrollTo(0, 0);
+  }
+  function goTalk(step){
+    flushTalk();
+    T.step = Math.max(0, Math.min(T.list.length + 1, step));
+    renderTalk();
+    window.scrollTo(0, 0);
+  }
+  function previousAgreement(k){
+    var ts = talksSorted().filter(function(t){ return t.date < T.date && t.notes[k]; });
+    return ts.length ? ts[ts.length-1] : null;
+  }
+
+  /* Questions for one person about one need, asked by the other. */
+  function questionsFor(p, n, r, prev){
+    var o = NAMES[OTHER[p]], a = r.matters[n.k], b = r.met[n.k], qs = [];
+    if(a === undefined || b === undefined) return qs;
+    var rk = r.rank.indexOf(n.k);
+    if(rk === 0) qs.push("It's number 1 in your top five. Why this one above everything else?");
+    else if(rk > 0) qs.push("It's number " + (rk + 1) + " in your top five. What puts it there?");
+    else if(a >= 8) qs.push("This matters " + a + " out of 10 to you. Why so much? When do you notice it most?");
+    else if(a <= 4) qs.push("This matters " + a + " out of 10 to you. Is that because it's fine as it is, or because it isn't really you?");
+    else qs.push("Why is this a " + a + " for you, and not higher or lower?");
+    var gap = a - b;
+    if(gap >= 2){
+      qs.push("You put how it's going at " + b + ". What happened in the last two weeks that made it a " + b + "?");
+      qs.push("What would " + o + " need to do for it to be a " + Math.min(10, b + 2) + "? Something specific enough to picture.");
+    } else if(gap === 1){
+      qs.push("It's close, at " + b + " against " + a + ". What's the small thing still missing?");
+    } else {
+      qs.push("It's going well, at " + b + ". What is " + o + " doing that you want kept up?");
+    }
+    var pb = prev ? prev.met[n.k] : undefined;
+    if(pb !== undefined && Math.abs(b - pb) >= 2) qs.push("It went from " + pb + " to " + b + " since " + fmtShort(prev.date) + ". What changed?");
+    return qs;
+  }
+  function personBlock(p, n){
+    var r = latestOf(p), box = h("div", "tp " + p);
+    var head = h("div", "tp-head");
+    head.appendChild(h("span", "tp-name", NAMES[p]));
+    if(r){ var rk = r.rank.indexOf(n.k); head.appendChild(h("span", "tp-rank", rk >= 0 ? "#" + (rk + 1) + " in top five" : "Not in top five")); }
+    box.appendChild(head);
+    if(!r || r.matters[n.k] === undefined || r.met[n.k] === undefined){
+      box.appendChild(h("p", "muted", r ? NAMES[p] + " didn't rate this need." : "No check-in from " + NAMES[p] + " yet."));
+      return box;
+    }
+    var a = r.matters[n.k], b = r.met[n.k], gap = a - b, prev = prevOf(p);
+    var nums = h("div", "tp-nums");
+    [["Matters", a], ["Going", b]].forEach(function(x){
+      var c = h("div", "tp-n"); c.appendChild(h("span", "tp-l", x[0]));
+      var v = h("span", "tp-v", String(x[1])); v.appendChild(h("small", null, "/10")); c.appendChild(v);
+      nums.appendChild(c);
+    });
+    var gc = h("div", "tp-n"); gc.appendChild(h("span", "tp-l", "Gap"));
+    var gw = h("div", "tp-c"); gw.appendChild(h("span", "chip " + gapClass(gap), gap > 0 ? String(gap) : "Met")); gc.appendChild(gw);
+    nums.appendChild(gc);
+    box.appendChild(nums);
+    var tr = h("div", "track");
+    var fill = h("div", "fill"); fill.style.width = (b * 10) + "%"; fill.style.background = "var(--" + p + ")";
+    var tick = h("div", "tick"); tick.style.left = (a * 10) + "%";
+    tr.appendChild(fill); tr.appendChild(tick);
+    tr.setAttribute("role", "img"); tr.setAttribute("aria-label", "Going " + b + " out of 10, matters " + a + " out of 10");
+    box.appendChild(tr);
+    var pb = prev ? prev.met[n.k] : undefined;
+    var chg = h("p", "tp-chg", "From " + NAMES[p] + "'s check-in on " + fmt(r.date) + ".");
+    if(pb !== undefined){ chg.textContent = "Going was " + pb + " on " + fmtShort(prev.date) + ", now " + b + ". From the check-in on " + fmtShort(r.date) + "."; }
+    box.appendChild(chg);
+    if(r.why[n.k]) box.appendChild(whyBlock(r.why[n.k], "In " + NAMES[p] + "'s words"));
+    var qs = questionsFor(p, n, r, prev);
+    if(qs.length){
+      var ask = h("div", "ask"); ask.appendChild(h("span", "ql", NAMES[OTHER[p]] + " asks " + NAMES[p]));
+      var ul = h("ul"); qs.forEach(function(q){ ul.appendChild(h("li", null, q)); }); ask.appendChild(ul);
+      box.appendChild(ask);
+    }
+    return box;
+  }
+  function togetherQs(n){
+    var B = latestOf("beth"), D = latestOf("david"), qs = [];
+    if(!B || !D) return qs;
+    var ab = B.matters[n.k], ad = D.matters[n.k];
+    if(ab !== undefined && ad !== undefined && Math.abs(ab - ad) >= 3){
+      var hi = ab > ad ? "beth" : "david", lo = OTHER[hi];
+      qs.push("This matters " + B.matters[n.k] + " to Beth and " + D.matters[n.k] + " to David. " + NAMES[hi] + ": what does it feel like when it's missing? " + NAMES[lo] + ": what did you assume it meant to " + NAMES[hi] + "?");
+    }
+    var gb = (ab !== undefined && B.met[n.k] !== undefined) ? ab - B.met[n.k] : 0;
+    var gd = (ad !== undefined && D.met[n.k] !== undefined) ? ad - D.met[n.k] : 0;
+    if(gb >= 2 && gd >= 2) qs.push("You both feel a gap here. Is it the same thing missing for each of you, or two different things?");
+    return qs;
+  }
+  function renderTalk(){
+    var body = $("talk-body"); body.innerHTML = "";
+    var N = T.list.length, s = T.step;
+    $("talk-prev").hidden = s === 0;
+    $("talk-next").textContent = s === 0 ? "Start →" : s === N ? "Finish →" : s > N ? "Back to the tracker" : "Next →";
+    $("talk-pos").textContent = s === 0 ? "" : s > N ? "Done" : s + " of " + N;
+
+    if(s === 0){
+      var wrap = h("section", "panel");
+      wrap.appendChild(h("p", "t-eyebrow", fmt(T.date)));
+      wrap.appendChild(h("h2", "t-title", "Talk it through"));
+      wrap.appendChild(h("p", "t-lead", "One need at a time: both your numbers, what you each wrote, and a few questions to ask. You don't need to get through all ten. Start at the top and stop when you've had enough."));
+      var rules = h("ul", "t-rules");
+      ["The person whose numbers they are talks first. The other only asks questions until they've finished.",
+       "Ask about the number, don't argue with it. It's how it feels, not a verdict.",
+       "End each one with something small to try. It saves as you type, and shows on the tracker until your next talk."
+      ].forEach(function(t){ rules.appendChild(h("li", null, t)); });
+      wrap.appendChild(rules);
+      var ord = h("div", "t-order");
+      var lab = h("label", "flabel", "Order"); lab.htmlFor = "talk-order"; lab.style.margin = "0";
+      var sel = document.createElement("select"); sel.id = "talk-order";
+      [["gap", "Biggest gaps first"], ["beth", "Beth's top five first"], ["david", "David's top five first"], ["book", "Book order"]].forEach(function(o){
+        var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; sel.appendChild(op);
+      });
+      sel.value = T.how;
+      sel.addEventListener("change", function(){ T.how = sel.value; T.list = talkOrder(T.how); try { localStorage.setItem("love-bank-talk-order", T.how); } catch(e){} renderTalk(); });
+      ord.appendChild(lab); ord.appendChild(sel);
+      wrap.appendChild(ord);
+      var ol = h("ul", "t-list");
+      var L = { beth:latestOf("beth"), david:latestOf("david") };
+      T.list.forEach(function(n, i){
+        var li = h("li"), b = h("button"); b.type = "button";
+        b.appendChild(h("span", "t-num", String(i + 1)));
+        b.appendChild(h("span", "t-ln", n.n));
+        var ch = h("span", "t-chips");
+        ORDER.forEach(function(p){
+          var r = L[p]; if(!r || r.matters[n.k] === undefined || r.met[n.k] === undefined) return;
+          var g = r.matters[n.k] - r.met[n.k];
+          var c = h("span", "chip " + (g >= 2 ? p : "flat"), NAMES[p].charAt(0) + " " + (g > 0 ? "gap " + g : "met"));
+          c.title = NAMES[p] + ": matters " + r.matters[n.k] + ", going " + r.met[n.k];
+          ch.appendChild(c);
+        });
+        b.appendChild(ch);
+        if(T.notes[n.k]) b.appendChild(h("span", "t-done", "✓ Agreed something"));
+        b.addEventListener("click", function(){ goTalk(i + 1); });
+        li.appendChild(b); ol.appendChild(li);
+      });
+      wrap.appendChild(ol);
+      body.appendChild(wrap);
+      return;
+    }
+
+    if(s > N){
+      var done = h("section", "panel");
+      done.appendChild(h("p", "t-eyebrow", fmt(T.date)));
+      done.appendChild(h("h2", "t-title", "What you agreed"));
+      var keys = T.list.filter(function(n){ return (T.notes[n.k] || "").trim(); });
+      if(!keys.length){ done.appendChild(h("p", "t-lead muted", "Nothing written down this time. That's fine; the talk was the point.")); }
+      else {
+        done.appendChild(h("p", "t-lead muted", "Saved. This shows on the tracker until your next talk, so you can both see it over the next two weeks."));
+        var sm = h("div", "t-sum");
+        keys.forEach(function(n){ var d = h("div"); d.appendChild(h("h3", null, n.n)); d.appendChild(h("p", null, T.notes[n.k].trim())); sm.appendChild(d); });
+        done.appendChild(sm);
+      }
+      body.appendChild(done);
+      return;
+    }
+
+    var n = T.list[s - 1];
+    var card = h("section", "t-need");
+    var top = h("div");
+    top.appendChild(h("p", "t-eyebrow", "Need " + s + " of " + N));
+    top.appendChild(h("h2", "t-title", n.n));
+    top.appendChild(h("p", "desc", n.d));
+    var more = h("details", "need-more"); more.style.margin = "6px 0 0";
+    more.appendChild(h("summary", null, "What this means")); more.appendChild(meaningBlock(n));
+    top.appendChild(more);
+    card.appendChild(top);
+    var people = h("div", "t-people");
+    ORDER.forEach(function(p){ people.appendChild(personBlock(p, n)); });
+    card.appendChild(people);
+    var tq = togetherQs(n);
+    if(tq.length){
+      var tg = h("div", "together"); tg.appendChild(h("span", "ql", "Both of you"));
+      var tul = h("ul"); tq.forEach(function(q){ tul.appendChild(h("li", null, q)); }); tg.appendChild(tul);
+      card.appendChild(tg);
+    }
+    var ag = h("div", "panel t-agree");
+    var al = h("label", null, "What we'll try"); al.htmlFor = "talk-agree"; ag.appendChild(al);
+    ag.appendChild(h("p", "hint", "One small, specific thing for the next two weeks, and who'll do it. Optional."));
+    var pa = previousAgreement(n.k);
+    if(pa){ var pp = h("p", "t-prev"); pp.appendChild(h("strong", null, "Last time (" + fmtShort(pa.date) + "): ")); pp.appendChild(document.createTextNode(pa.notes[n.k])); ag.appendChild(pp); }
+    var ta = document.createElement("textarea"); ta.id = "talk-agree"; ta.maxLength = AGREE_MAX;
+    ta.value = T.notes[n.k] || "";
+    ta.addEventListener("input", function(){ T.notes[n.k] = ta.value; T.dirty = true; queueTalkSave(); });
+    ag.appendChild(ta);
+    card.appendChild(ag);
+    body.appendChild(card);
+  }
+  function talkStatus(msg, err){ var el = $("talk-status"); el.textContent = msg; el.className = "talk-status" + (err ? " err" : ""); }
+  function queueTalkSave(){
+    talkStatus("");
+    if(T.timer) clearTimeout(T.timer);
+    T.timer = setTimeout(saveTalk, 1200);
+  }
+  function flushTalk(){ if(T && T.dirty){ if(T.timer) clearTimeout(T.timer); saveTalk(); } }
+  function saveTalk(){
+    if(!T || !T.dirty) return;
+    if(T.saving){ T.again = true; return; }
+    var notes = {};
+    NEEDS.forEach(function(n){ var s = (T.notes[n.k] || "").trim().slice(0, AGREE_MAX); if(s) notes[n.k] = s; });
+    if(!T.id && !Object.keys(notes).length){ T.dirty = false; return; }
+    var t = T; t.saving = true; t.dirty = false;
+    talkStatus("Saving…");
+    sb.rpc("love_bank_talk_save", { p_token:token, p_id:t.id, p_date:t.date, p_notes:notes }).then(function(res){
+      t.saving = false;
+      if(res.error){
+        t.dirty = true;
+        if(isAuthError(res.error)){ talkStatus("You've been signed out. Copy what you wrote, then reload and sign in.", true); return; }
+        if(/not_found/.test(String(res.error.message || ""))){ t.id = null; }
+        talkStatus("Couldn't save just now. It'll try again when you type or move on.", true); return;
+      }
+      t.id = String(res.data);
+      var rec = { id:t.id, date:t.date, createdAt:"", notes:notes };
+      var found = false;
+      S.talks = S.talks.map(function(x){ if(x.id === t.id){ found = true; rec.createdAt = x.createdAt; return rec; } return x; });
+      if(!found){ rec.createdAt = new Date().toISOString(); S.talks.push(rec); }
+      if(T === t) talkStatus("Saved");
+      if(t.again){ t.again = false; if(t.dirty) saveTalk(); }
+    }, function(){
+      t.saving = false; t.dirty = true;
+      talkStatus("Couldn't reach the server. It'll try again when you type or move on.", true);
+    });
+  }
+  function renderAgreed(){
+    var panel = $("agreed-panel"), box = $("agreed");
+    var ts = talksSorted().filter(function(t){ return Object.keys(t.notes).length; });
+    box.innerHTML = "";
+    if(!ts.length || !S.loaded || !S.rows.length){ panel.hidden = true; return; }
+    var t = ts[ts.length-1];
+    panel.hidden = false;
+    $("agreed-intro").textContent = "From your talk on " + fmt(t.date) + ". Worth a look before the next check-in.";
+    NEEDS.forEach(function(n){
+      if(!t.notes[n.k]) return;
+      var d = h("div"); d.appendChild(h("h3", null, n.n)); d.appendChild(h("p", null, t.notes[n.k])); box.appendChild(d);
+    });
+  }
+  $("talk-btn").addEventListener("click", openTalk);
+  $("agreed-open").addEventListener("click", openTalk);
+  $("talk-back").addEventListener("click", closeTalk);
+  $("talk-prev").addEventListener("click", function(){ goTalk(T.step - 1); });
+  $("talk-next").addEventListener("click", function(){ if(T.step > T.list.length) closeTalk(); else goTalk(T.step + 1); });
+  window.addEventListener("pagehide", function(){ flushTalk(); });
+
   /* ---------- dashboard events ---------- */
   $("new-btn").addEventListener("click", function(){ openForm(null); });
   $("empty-btn").addEventListener("click", function(){ openForm(null); });
@@ -1414,7 +1800,8 @@ footer.foot p{max-width:70ch}
       S.rows = rows; S.loaded = true;
       var n = $("notice"); if(/Still loading/.test(n.textContent)) n.hidden = true;
       if(S.confirm && !rows.some(function(r){ return r.id === S.confirm; })) S.confirm = null;
-      if($("form-view").hidden) renderAll(); else renderDue();
+      if($("form-view").hidden && $("talk-view").hidden) renderAll(); else renderDue();
+      loadTalks();
     }, function(){
       loading = false; clearTimeout(slow);
       S.loaded = true; note("Couldn't reach the check-ins. Check your connection and reload."); renderAll();
@@ -1427,8 +1814,8 @@ footer.foot p{max-width:70ch}
     load();
   }
   function lock(){
-    S.authed = false; S.loaded = false; S.rows = [];
-    $("app").hidden = true; $("form-view").hidden = true; $("dash").hidden = false; $("story").hidden = false; $("gate").hidden = false;
+    S.authed = false; S.loaded = false; S.rows = []; S.talks = []; T = null;
+    $("app").hidden = true; $("app").classList.remove("talking"); $("form-view").hidden = true; $("talk-view").hidden = true; $("dash").hidden = false; $("story").hidden = false; $("gate").hidden = false;
     $("gate-pw").value = "";
     setTimeout(function(){ try { $("gate-pw").focus(); } catch(e){} }, 0);
   }
@@ -1463,7 +1850,8 @@ footer.foot p{max-width:70ch}
     if(t) sb.rpc("love_bank_logout", { p_token:t }).then(function(){}, function(){});
   });
   document.addEventListener("visibilitychange", function(){
-    if(document.visibilityState === "visible" && S.authed && $("form-view").hidden) load();
+    if(document.visibilityState === "visible" && S.authed && $("form-view").hidden && $("talk-view").hidden) load();
+    if(document.visibilityState === "hidden") flushTalk();
   });
 
   if(!window.supabase || !window.supabase.createClient){
