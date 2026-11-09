@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#2b1a23">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Love Bank">
 <title>Love Bank</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -58,6 +65,7 @@
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
+body::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:var(--band);z-index:50;pointer-events:none}
 html{-webkit-text-size-adjust:100%}
 img{max-width:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15.5px;line-height:1.55}
@@ -71,7 +79,7 @@ button{font-family:inherit}
 /* ---------- masthead ---------- */
 .band{background:var(--band);color:var(--band-ink);position:relative}
 .band::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--gold);opacity:.45}
-.band-in{max-width:1040px;margin:0 auto;padding-block:clamp(30px,6vw,52px) clamp(26px,5vw,40px);
+.band-in{max-width:1040px;margin:0 auto;padding-block:max(clamp(30px,6vw,52px),calc(env(safe-area-inset-top,0px) + 18px)) clamp(26px,5vw,40px);
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   display:flex;flex-wrap:wrap;gap:24px 40px;align-items:flex-end;justify-content:space-between}
 .brand{flex:1 1 380px;min-width:0}
@@ -360,6 +368,8 @@ footer.foot p{max-width:70ch}
 .btn-line:hover{color:var(--band-ink);border-color:var(--band-ink)}
 .talk{padding-bottom:40px}
 .talking header.band{display:none}
+#talk-view{padding-top:calc(30px + env(safe-area-inset-top,0px))}
+.install-tip{font-size:13px;color:var(--ink-soft)}
 .talk h2.t-title{font-size:clamp(32px,7vw,44px);line-height:1.05}
 .t-eyebrow{font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:6px}
 .t-lead{font-size:16px;max-width:62ch;margin-top:10px}
@@ -408,7 +418,7 @@ footer.foot p{max-width:70ch}
 .talk-nav .btn-accent{padding:12px 20px}
 .talk-nav .btn-sub{padding:11px 14px}
 .talk-pos{text-align:center;font-size:13.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
-.talk-bar{position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--line);padding-block:max(10px,env(safe-area-inset-top,0px)) 10px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;box-shadow:0 6px 10px -10px rgba(0,0,0,.35)}
+.talk-bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:2;background:var(--bg);border-bottom:1px solid var(--line);padding-block:10px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;box-shadow:0 6px 10px -10px rgba(0,0,0,.35)}
 .talk-bar .tb-l{display:block;font-family:var(--font-body);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;line-height:1.3}
 .talk-bar .tb-name{font-family:var(--font-display);font-size:clamp(30px,7vw,40px);font-weight:500;color:var(--ink);line-height:1.05;min-width:0}
 .talk-bar .tb-count{font-size:12.5px;color:var(--ink-soft);white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -582,6 +592,7 @@ footer.foot p{max-width:70ch}
 
   <footer class="foot">
     <p>The ten needs come from <em>His Needs, Her Needs</em> by Willard F. Harley Jr. The descriptions and the balance formula are ours: for each need, how it's going × how much it matters, as a share of the most it could be.</p>
+    <p class="install-tip" id="install-tip" hidden>On iPhone: tap Share, then <strong>Add to Home Screen</strong>, to open this like an app.</p>
     <button type="button" class="btn-out" id="sign-out">Sign out on this device</button>
   </footer>
 </main>
@@ -703,7 +714,7 @@ footer.foot p{max-width:70ch}
     domestic:    { m:"Running the home shared fairly and willingly: chores, meals, admin, schedules, and the mental load of remembering what needs doing. Owning parts of it, not \"helping\".",
                    x:"Noticing what needs doing without being asked. Taking a job off their list for good. An evening routine you both carry." },
     family:      { m:"Being actively involved in raising the kids and in family life: time with them, their schooling and character, and doing things as a family. A partner in parenting, not an assistant.",
-                   x:"Doing bedtime or homework regularly. Knowing their teachers and friends. Planning family outings. Backing each other up on decisions." },
+                   x:"Turning up for their games, shows and big moments. Knowing what's going on with their friends and school. Planning things to do as a family. Backing each other up on decisions." },
     admiration:  { m:"Being appreciated and respected: hearing what your partner values about you, being spoken well of to others, and not being criticised or belittled. Knowing they're proud of you and would choose you again.",
                    x:"Saying specifically what you admire. Thanking them for things that usually go unnoticed. Praising them in front of others. Holding back the criticism." }
   };
@@ -2003,6 +2014,13 @@ footer.foot p{max-width:70ch}
     if(document.visibilityState === "visible" && S.authed && $("form-view").hidden && $("talk-view").hidden) load();
     if(document.visibilityState === "hidden") flushTalk();
   });
+
+  /* Suggest installing on iPhone Safari, unless it's already running from the home screen. */
+  try {
+    var ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    var installed = window.navigator.standalone === true || (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+    if(ios && !installed) $("install-tip").hidden = false;
+  } catch(e){}
 
   if(!window.supabase || !window.supabase.createClient){
     $("gate").hidden = false;

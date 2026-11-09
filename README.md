@@ -11,9 +11,13 @@ Each need also has an optional "why" comment (stored in `notes.why` as need→te
 | Database | Supabase project `family-finance`, ref `zijtjfdpvkfdxflutmpc` (shared with the finance app) |
 | Table | `public.love_bank_checkins` — one row per person per check-in: `person` (beth/david), `date`, `matters`/`met` (jsonb need→0-10), `rank` (jsonb array of need keys), `notes` (jsonb) |
 
+## On the phone
+
+The site is an installable web app (`manifest.webmanifest`, icons in `icons/`). On iPhone: open the site in Safari, Share → Add to Home Screen. It opens full-screen with its own icon. The home-screen app keeps its own storage, so enter the password once inside it. Changes pushed to `main` reach the installed app too.
+
 ## Talk it through
 
-A date-night view (header button "Talk it through"): one need per screen with both people's latest numbers, their "why" comments, generated questions for each to ask the other, and a "What we'll try" box. Agreements autosave to `public.love_bank_talks` (one row per date, `notes` = need→text) via `love_bank_talks_list` / `love_bank_talk_save`, and the latest talk shows on the tracker as "What we agreed".
+A date-night view (header button "Talk it through"): one need per screen with both people's latest numbers, their "why" comments, generated questions for each to ask the other, and a "What we'll try" box. Agreements autosave to `public.love_bank_talks` (one row per date, `notes` = need→text) via `love_bank_talks_list` / `love_bank_talk_save`, and the latest talk shows on the tracker as "What we agreed". A shortlist for the evening is stored in the same row as `notes._plan` (ordered need keys); a talk with a plan but nothing agreed carries over to the day it's used.
 
 ## Password gate
 
