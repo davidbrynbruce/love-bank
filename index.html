@@ -497,6 +497,18 @@ footer.foot p{max-width:70ch}
 .n-status{font-size:12.5px;color:var(--ink-soft)}
 .n-status:empty{display:none}
 .n-status.err{color:var(--bad)}
+.n-alert{display:flex;gap:12px;align-items:flex-start;margin:0;padding:12px 14px;border:1px solid var(--gold);border-radius:8px;background:var(--surface)}
+.n-alert-ico{font-size:22px;line-height:1.2}
+.n-alert-tx{display:flex;flex-direction:column;gap:8px;font-size:14.5px;min-width:0;flex:1}
+.n-alert-btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.n-alert-on{padding:9px 16px;font-size:14px}
+.n-alert-msg{font-size:13.5px;color:var(--ink-soft)}
+.n-alert-msg.err{color:var(--bad)}
+.alerts-settings{width:100%;border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:6px;align-items:center}
+.alerts-settings:empty{display:none}
+.alerts-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
+.alerts-state{font-weight:700;font-size:14px}
+.alerts-hint{font-size:13px}
 .n-viewer{position:fixed;inset:0;background:rgba(10,5,8,.94);z-index:60;display:flex;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top,0px)) 12px max(20px,env(safe-area-inset-bottom,0px))}
 .n-viewer img{max-width:100%;max-height:100%;border-radius:6px}
 .n-viewer-x{position:absolute;top:max(14px,env(safe-area-inset-top,0px));right:14px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:24px;cursor:pointer}
@@ -731,6 +743,7 @@ footer.foot p{max-width:70ch}
   </div>
   <div class="n-thread" id="notes-thread"></div>
   <form class="n-compose" id="notes-form" novalidate>
+    <div class="n-alert" id="notes-alerts" hidden></div>
     <div class="n-pick" id="notes-pick" hidden>
       <p class="n-pick-q">Who's using this phone?</p>
       <div class="n-pick-btns">
@@ -738,6 +751,7 @@ footer.foot p{max-width:70ch}
         <button type="button" class="btn-sub n-pick-david" data-me="david">I'm David</button>
       </div>
       <p class="muted n-pick-sub">Asked once on each phone, so your notes show as yours.</p>
+      <div class="alerts-settings" id="alerts-settings"></div>
     </div>
     <div class="n-emoji" id="notes-emoji" aria-label="Quick emoji"></div>
     <div class="n-attach" id="notes-attach" hidden>
@@ -2022,6 +2036,7 @@ footer.foot p{max-width:70ch}
       if(res.error){ if(isAuthError(res.error)){ saveToken(null); lock(); } return; }
       NT.list = (res.data || []).map(cleanNote).filter(Boolean);
       NT.loaded = true;
+      if(!AL.synced && AL.sub && NT.me && "Notification" in window && Notification.permission === "granted"){ AL.synced = true; saveSub(AL.sub).catch(function(){}); }
       renderNotesBadge();
       if(!$("notes-view").hidden){ renderThread(false); markRead(); }
     }, function(){});
@@ -2052,6 +2067,8 @@ footer.foot p{max-width:70ch}
     try { localStorage.setItem(ME_KEY, p); } catch(e){}
     NT.picking = false;
     renderMe(); renderPick(); renderThread(true); markRead(); renderNotesBadge();
+    if(AL.sub && Notification.permission === "granted") saveSub(AL.sub).catch(function(){});
+    renderAlerts();
     try { $("notes-text").focus(); } catch(e){}
   }
   function renderPick(){
@@ -2071,7 +2088,7 @@ footer.foot p{max-width:70ch}
     $("notes-view").hidden = false;
     $("app").classList.add("noting");
     NT.picking = false;
-    renderMe(); renderPick();
+    renderMe(); renderPick(); renderAlerts();
     NT.sig = "";
     renderThread(true);
     loadNotes();
@@ -2279,6 +2296,151 @@ footer.foot p{max-width:70ch}
   $("notes-attach-x").addEventListener("click", function(){ setAttachment(null); $("notes-file").value = ""; });
   setInterval(function(){ if(document.visibilityState === "visible" && S.authed && $("notes-view").hidden) loadNotes(); }, 60000);
 
+  /* ---------- alerts for love notes (Web Push) ---------- */
+  var PUSH_FN = SB_URL + "/functions/v1/love-bank-push";
+  var AL = { reg:null, sub:null, busy:false, msg:"", err:false };
+  function pushSupported(){ return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window; }
+  function onIOS(){ return /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); }
+  function standalone(){ return window.navigator.standalone === true || (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches); }
+  function alertsOn(){ return !!AL.sub && "Notification" in window && Notification.permission === "granted"; }
+  function alertsDismissed(){ try { return localStorage.getItem("love-bank-alerts-later") === "1"; } catch(e){ return false; } }
+  function bytesFromB64u(s){
+    var t = s.replace(/-/g, "+").replace(/_/g, "/"), bin = atob(t + "===".slice((t.length + 3) % 4)), out = new Uint8Array(bin.length);
+    for(var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  function callPush(body){
+    return fetch(PUSH_FN, { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(body) })
+      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return { ok:r.ok, status:r.status, data:j }; }); });
+  }
+  function saveSub(sub){
+    if(!sub || !NT.me) return Promise.resolve();
+    var j = sub.toJSON();
+    return sb.rpc("love_bank_push_subscribe", { p_token:token, p_person:NT.me, p_endpoint:j.endpoint, p_p256dh:j.keys.p256dh, p_auth:j.keys.auth })
+      .then(function(res){ if(res.error) throw new Error(isAuthError(res.error) ? "signed_out" : "save_failed"); });
+  }
+  function alertMsg(m, err){ AL.msg = m || ""; AL.err = !!err; renderAlerts(); }
+  function renderAlerts(){
+    var bar = $("notes-alerts"), set = $("alerts-settings");
+    var other = NT.me ? NAMES[OTHER[NT.me]] : "the other one";
+    bar.innerHTML = ""; set.innerHTML = "";
+    var canAsk = pushSupported() && (!onIOS() || standalone());
+    var on = alertsOn();
+    var denied = "Notification" in window && Notification.permission === "denied";
+
+    /* The prompt under the header: only when alerts are off and not put off. */
+    var showBar = !!NT.me && !on && !alertsDismissed() && (canAsk || onIOS());
+    bar.hidden = !showBar && !AL.msg;
+    if(showBar){
+      bar.appendChild(h("span", "n-alert-ico", "🔔"));
+      var tx = h("div", "n-alert-tx");
+      if(denied) tx.appendChild(h("p", null, "Alerts are blocked for Love Bank. Turn them on in Settings → Notifications → Love Bank."));
+      else if(!canAsk) tx.appendChild(h("p", null, "Want an alert when " + other + " sends a note? First add Love Bank to your Home Screen (Share → Add to Home Screen), then open it from there."));
+      else tx.appendChild(h("p", null, "Get an alert when " + other + " sends a note."));
+      var btns = h("div", "n-alert-btns");
+      if(canAsk && !denied){
+        var on1 = h("button", "btn-accent n-alert-on", AL.busy ? "Turning on…" : "Turn on alerts"); on1.type = "button"; on1.disabled = AL.busy;
+        on1.addEventListener("click", turnOnAlerts);
+        btns.appendChild(on1);
+      }
+      var later = h("button", "btn-link", "Not now"); later.type = "button";
+      later.addEventListener("click", function(){ try { localStorage.setItem("love-bank-alerts-later", "1"); } catch(e){} AL.msg = ""; renderAlerts(); });
+      btns.appendChild(later);
+      tx.appendChild(btns);
+      bar.appendChild(tx);
+    }
+    if(AL.msg){
+      var m = h("p", "n-alert-msg" + (AL.err ? " err" : ""), AL.msg);
+      if(showBar) bar.querySelector(".n-alert-tx").appendChild(m); else bar.appendChild(m);
+    }
+
+    /* In the "You're …" panel: status and controls. */
+    if(!pushSupported() && !onIOS()) return;
+    var row = h("div", "alerts-row");
+    row.appendChild(h("span", "alerts-state", on ? "🔔 Alerts are on" : "🔕 Alerts are off"));
+    if(on){
+      var test = h("button", "btn-link", "Send a test"); test.type = "button";
+      test.addEventListener("click", function(){
+        alertMsg("Sending a test alert…");
+        callPush({ action:"test", token:token, endpoint:AL.sub.endpoint }).then(function(r){
+          alertMsg(r.ok && r.data.sent ? "Test alert sent. It should arrive in a few seconds." : "The test didn't go through. Try turning alerts off and on again.", !(r.ok && r.data.sent));
+        }, function(){ alertMsg("Couldn't reach the server.", true); });
+      });
+      var off = h("button", "btn-link", "Turn off"); off.type = "button";
+      off.addEventListener("click", turnOffAlerts);
+      row.appendChild(test); row.appendChild(off);
+    } else if(canAsk && !denied){
+      var on2 = h("button", "btn-link", "Turn on"); on2.type = "button";
+      on2.addEventListener("click", function(){ try { localStorage.removeItem("love-bank-alerts-later"); } catch(e){} turnOnAlerts(); });
+      row.appendChild(on2);
+    }
+    set.appendChild(row);
+    if(!on && !canAsk && onIOS()) set.appendChild(h("p", "muted alerts-hint", "Alerts need Love Bank on your Home Screen: Share → Add to Home Screen, then open it from there."));
+    if(denied) set.appendChild(h("p", "muted alerts-hint", "Blocked in Settings → Notifications → Love Bank."));
+  }
+  function turnOnAlerts(){
+    if(AL.busy) return;
+    if(!NT.me){ alertMsg("Pick who you are first.", true); return; }
+    AL.busy = true; alertMsg("Turning on alerts…");
+    /* iPhone only allows the permission request directly from a tap, so it comes first. */
+    var permReq;
+    try { permReq = Promise.resolve(Notification.requestPermission()); } catch(e){ permReq = Promise.reject(e); }
+    permReq.then(function(perm){
+      if(perm !== "granted") throw new Error("denied");
+      return Promise.all([
+        AL.reg ? AL.reg : navigator.serviceWorker.register("sw.js"),
+        callPush({ action:"key", token:token })
+      ]);
+    }).then(function(r){
+      AL.reg = r[0];
+      if(!r[1].ok || !r[1].data.key) throw new Error(r[1].status === 401 ? "signed_out" : "no_key");
+      var key = bytesFromB64u(r[1].data.key);
+      return navigator.serviceWorker.ready.then(function(reg){
+        return reg.pushManager.getSubscription().then(function(s){
+          return s || reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey:key });
+        });
+      });
+    }).then(function(sub){
+      AL.sub = sub;
+      return saveSub(sub);
+    }).then(function(){
+      return callPush({ action:"test", token:token, endpoint:AL.sub.endpoint }).catch(function(){ return { ok:false }; });
+    }).then(function(r){
+      AL.busy = false;
+      alertMsg(r && r.ok && r.data && r.data.sent ? "Alerts are on. A test alert is on its way." : "Alerts are on.");
+      setTimeout(function(){ if(/^Alerts are on/.test(AL.msg)) alertMsg(""); }, 8000);
+    }).catch(function(err){
+      AL.busy = false;
+      var m = err && err.message;
+      alertMsg(m === "denied" ? "Alerts weren't allowed. You can turn them on later in Settings → Notifications → Love Bank."
+        : m === "signed_out" ? "You've been signed out. Reload and enter the password."
+        : "Couldn't turn on alerts just now. Try again in a moment.", true);
+    });
+  }
+  function turnOffAlerts(){
+    var sub = AL.sub; if(!sub) return;
+    var ep = sub.endpoint;
+    AL.sub = null; alertMsg("Alerts are off on this phone.");
+    sub.unsubscribe().catch(function(){});
+    sb.rpc("love_bank_push_unsubscribe", { p_token:token, p_endpoint:ep }).then(function(){}, function(){});
+  }
+  function initAlerts(){
+    if(!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.register("sw.js").then(function(reg){
+      AL.reg = reg;
+      return reg.pushManager ? reg.pushManager.getSubscription() : null;
+    }).then(function(s){
+      AL.sub = s || null;
+      /* Keep the server's copy current (it drops subscriptions Apple says are gone). */
+      if(AL.sub && S.authed && NT.me && "Notification" in window && Notification.permission === "granted") saveSub(AL.sub).catch(function(){});
+      renderAlerts();
+    }).catch(function(){});
+    navigator.serviceWorker.addEventListener("message", function(e){
+      if(e.data && e.data.type === "open-notes" && S.authed && $("notes-view").hidden) openNotes();
+    });
+  }
+  initAlerts();
+
   /* ---------- dashboard events ---------- */
   $("new-btn").addEventListener("click", function(){ openForm(null); });
   $("empty-btn").addEventListener("click", function(){ openForm(null); });
@@ -2340,6 +2502,11 @@ footer.foot p{max-width:70ch}
     $("gate").hidden = true; $("app").hidden = false;
     renderAll();
     load();
+    /* Tapping a love-note alert opens the app at #notes. */
+    if(location.hash === "#notes"){
+      try { history.replaceState(null, "", location.pathname + location.search); } catch(e){}
+      openNotes();
+    }
   }
   function lock(){
     S.authed = false; S.loaded = false; S.rows = []; S.talks = []; T = null;
