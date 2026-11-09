@@ -447,6 +447,60 @@ footer.foot p{max-width:70ch}
 .agreed h3{font-size:20px;margin-bottom:2px}
 .agreed p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px}
 
+/* ---------- love notes ---------- */
+.vh{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;opacity:0}
+.noting header.band{display:none}
+.nbadge{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:11px;background:var(--beth);color:#fff;font-size:12px;font-weight:700;padding:0 6px;margin-left:8px;vertical-align:middle;font-variant-numeric:tabular-nums}
+.notes{max-width:720px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top,0px);padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+.n-top{position:sticky;top:env(safe-area-inset-top,0px);z-index:3;background:var(--bg);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
+.n-top .back{justify-self:start}
+.n-title{font-size:26px;line-height:1.1;text-align:center}
+.n-me{justify-self:end;background:none;border:1px solid var(--line);border-radius:999px;font-size:12.5px;font-weight:700;padding:5px 11px;color:var(--ink-soft);cursor:pointer;white-space:nowrap}
+.n-me.beth{color:var(--beth);border-color:var(--beth)} .n-me.david{color:var(--david);border-color:var(--david)}
+.n-pick{margin:4px 0;padding:16px;border:1px solid var(--line);border-radius:8px;background:var(--surface);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.n-pick-q{font-family:var(--font-display);font-size:24px}
+.n-pick-btns{display:flex;gap:10px}
+.n-pick-btns .btn-sub{font-size:15px;padding:10px 18px}
+.n-pick-beth{color:var(--beth)} .n-pick-david{color:var(--david)}
+.n-pick-sub{font-size:13.5px}
+.n-thread{flex:1;display:flex;flex-direction:column;gap:3px;padding:10px 0 14px}
+.n-day{align-self:center;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;margin:16px 0 6px}
+.n-msg{max-width:min(80%,460px);display:flex;flex-direction:column;gap:3px;margin-top:8px}
+.n-msg.cont{margin-top:0}
+.n-msg.mine{align-self:flex-end;align-items:flex-end}
+.n-msg.theirs{align-self:flex-start;align-items:flex-start}
+.n-msg.tappable{cursor:pointer}
+.n-who{font-size:11.5px;font-weight:700;color:var(--ink-soft);padding:0 8px}
+.n-bub{border-radius:20px;padding:9px 14px;font-size:16px;line-height:1.42;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--ink)}
+.n-msg.beth .n-bub{background:var(--beth-soft)} .n-msg.david .n-bub{background:var(--david-soft)}
+.n-msg.mine .n-bub{border-bottom-right-radius:6px} .n-msg.theirs .n-bub{border-bottom-left-radius:6px}
+.n-bub.big{background:none!important;font-size:46px;line-height:1.1;padding:0 2px}
+.n-img{display:block;max-width:100%;max-height:360px;min-width:140px;min-height:100px;border-radius:16px;cursor:zoom-in;background:var(--surface-2);object-fit:cover}
+.n-meta{font-size:11.5px;color:var(--ink-soft);padding:0 6px;font-variant-numeric:tabular-nums}
+.n-delrow{display:flex;gap:6px;margin-top:4px}
+.n-empty{margin:auto;text-align:center;color:var(--ink-soft);max-width:32ch;padding:48px 0;display:flex;flex-direction:column;gap:10px}
+.n-empty-big{font-size:46px;line-height:1}
+.n-compose{position:sticky;bottom:0;z-index:3;background:var(--bg);border-top:1px solid var(--line);padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px}
+.n-emoji{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.n-emoji::-webkit-scrollbar{display:none}
+.n-emoji button{flex:none;font-size:23px;background:none;border:0;border-radius:8px;padding:3px 5px;cursor:pointer;line-height:1.1}
+.n-emoji button:hover{background:var(--surface-2)}
+.n-row{display:flex;gap:8px;align-items:flex-end}
+.n-row textarea{min-height:44px;max-height:140px;flex:1;min-width:0;resize:none;font-size:16px;line-height:1.4;border-radius:22px;padding:11px 15px}
+.n-photo{flex:none;position:relative;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);background:var(--surface)}
+.n-photo:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.n-send{flex:none;border-radius:22px;padding:11px 18px}
+.n-attach{position:relative;align-self:flex-start;margin:4px 0 0 4px}
+.n-attach img{max-height:120px;max-width:200px;border-radius:12px;display:block}
+.n-attach button{position:absolute;top:-9px;right:-9px;width:28px;height:28px;border-radius:50%;border:2px solid var(--bg);background:var(--ink);color:var(--bg);font-size:17px;line-height:1;cursor:pointer}
+.n-status{font-size:12.5px;color:var(--ink-soft)}
+.n-status:empty{display:none}
+.n-status.err{color:var(--bad)}
+.n-viewer{position:fixed;inset:0;background:rgba(10,5,8,.94);z-index:60;display:flex;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top,0px)) 12px max(20px,env(safe-area-inset-bottom,0px))}
+.n-viewer img{max-width:100%;max-height:100%;border-radius:6px}
+.n-viewer-x{position:absolute;top:max(14px,env(safe-area-inset-top,0px));right:14px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:24px;cursor:pointer}
+
 @media (max-width:760px){
   .lrow{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"name gap" "bar bar" "trend trend"}
   .lrow.head{display:none}
@@ -493,6 +547,7 @@ footer.foot p{max-width:70ch}
         <span class="due-sub" id="due-sub">No check-ins recorded yet.</span>
       </div>
       <button type="button" class="btn-gold" id="new-btn">New check-in</button>
+      <button type="button" class="btn-line" id="notes-btn" hidden>Love notes<span class="nbadge" id="notes-badge" hidden></span></button>
       <button type="button" class="btn-line" id="talk-btn" hidden>Talk it through</button>
     </div>
 
@@ -666,6 +721,41 @@ footer.foot p{max-width:70ch}
     <button type="button" class="btn-accent" id="talk-next">Next →</button>
   </nav>
   <p class="talk-status" id="talk-status" role="status"></p>
+</main>
+
+<main class="notes" id="notes-view" hidden>
+  <div class="n-top">
+    <button type="button" class="back" id="notes-back">← Tracker</button>
+    <h2 class="n-title">Love notes</h2>
+    <button type="button" class="n-me" id="notes-me">Who are you?</button>
+  </div>
+  <div class="n-thread" id="notes-thread"></div>
+  <form class="n-compose" id="notes-form" novalidate>
+    <div class="n-pick" id="notes-pick" hidden>
+      <p class="n-pick-q">Who's using this phone?</p>
+      <div class="n-pick-btns">
+        <button type="button" class="btn-sub n-pick-beth" data-me="beth">I'm Beth</button>
+        <button type="button" class="btn-sub n-pick-david" data-me="david">I'm David</button>
+      </div>
+      <p class="muted n-pick-sub">Asked once on each phone, so your notes show as yours.</p>
+    </div>
+    <div class="n-emoji" id="notes-emoji" aria-label="Quick emoji"></div>
+    <div class="n-attach" id="notes-attach" hidden>
+      <img id="notes-attach-img" alt="Picture to send">
+      <button type="button" id="notes-attach-x" aria-label="Remove picture">×</button>
+    </div>
+    <div class="n-row">
+      <label class="n-photo" for="notes-file" title="Add a photo or meme">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>
+        <span class="vh">Add a photo or meme</span>
+        <input type="file" id="notes-file" accept="image/*" class="vh">
+      </label>
+      <label class="vh" for="notes-text">Your note</label>
+      <textarea id="notes-text" rows="1" maxlength="4000" placeholder="Write a love note…"></textarea>
+      <button type="submit" class="btn-accent n-send" id="notes-send">Send</button>
+    </div>
+    <p class="n-status" id="notes-status" role="status"></p>
+  </form>
 </main>
 </div>
 
@@ -1238,6 +1328,7 @@ footer.foot p{max-width:70ch}
     ["trend-panel", "needs-panel", "focus-panel", "tops-panel", "history-panel"].forEach(function(id){ $(id).hidden = empty || !S.loaded; });
     $("new-btn").hidden = !S.authed;
     $("talk-btn").hidden = !S.authed || !S.loaded || empty;
+    $("notes-btn").hidden = !S.authed;
     $("empty-btn").hidden = !S.authed;
     renderDue(); renderBalances(); renderAgreed();
     if(S.loaded && !empty){ renderTrend(); renderNeeds(); renderFocus(); renderTops(); renderHistory(); }
@@ -1913,6 +2004,281 @@ footer.foot p{max-width:70ch}
   $("talk-next").addEventListener("click", function(){ if(T.step >= lastStep()) closeTalk(); else goTalk(T.step + 1); });
   window.addEventListener("pagehide", function(){ flushTalk(); });
 
+  /* ---------- love notes ---------- */
+  var ME_KEY = "love-bank-me";
+  var NOTE_MAX = 4000, IMG_MAX = 4400000, GIF_MAX = 3200000;
+  var EMOJI = ["❤️","😘","🥰","😍","💋","🤗","😂","🔥","🌹","✨","💕","🥂"];
+  var IMG_OK = /^data:image\/(jpeg|png|gif|webp);base64,[A-Za-z0-9+\/=]+$/;
+  var NT = { list:[], loaded:false, me:null, att:null, sending:false, poll:null, imgs:{}, imgLoading:{}, ask:null, sig:"" };
+  try { var meSaved = localStorage.getItem(ME_KEY); if(meSaved === "beth" || meSaved === "david") NT.me = meSaved; } catch(e){}
+
+  function cleanNote(d){
+    if(!d || (d.sender !== "beth" && d.sender !== "david")) return null;
+    return { id:String(d.id), sender:d.sender, body:str(d.body, NOTE_MAX), hasImage:!!d.has_image, at:str(d.created_at, 40), readAt:d.read_at ? str(d.read_at, 40) : null };
+  }
+  function loadNotes(){
+    if(!S.authed || !sb) return;
+    sb.rpc("love_bank_notes_list", { p_token:token }).then(function(res){
+      if(res.error){ if(isAuthError(res.error)){ saveToken(null); lock(); } return; }
+      NT.list = (res.data || []).map(cleanNote).filter(Boolean);
+      NT.loaded = true;
+      renderNotesBadge();
+      if(!$("notes-view").hidden){ renderThread(false); markRead(); }
+    }, function(){});
+  }
+  function unreadCount(){
+    if(!NT.me) return 0;
+    return NT.list.filter(function(n){ return n.sender !== NT.me && !n.readAt; }).length;
+  }
+  function renderNotesBadge(){
+    var n = unreadCount(), b = $("notes-badge");
+    b.textContent = n > 9 ? "9+" : String(n); b.hidden = !n;
+    $("notes-btn").setAttribute("aria-label", "Love notes" + (n ? ", " + n + " new" : ""));
+    document.title = (n ? "(" + n + ") " : "") + "Love Bank";
+    try {
+      if(n && navigator.setAppBadge) navigator.setAppBadge(n).catch(function(){});
+      else if(!n && navigator.clearAppBadge) navigator.clearAppBadge().catch(function(){});
+    } catch(e){}
+  }
+  function markRead(){
+    if(!NT.me || !unreadCount() || document.visibilityState !== "visible") return;
+    var me = NT.me, now = new Date().toISOString();
+    NT.list.forEach(function(n){ if(n.sender !== me && !n.readAt) n.readAt = now; });
+    renderNotesBadge();
+    sb.rpc("love_bank_notes_read", { p_token:token, p_reader:me }).then(function(){}, function(){});
+  }
+  function setMe(p){
+    NT.me = p;
+    try { localStorage.setItem(ME_KEY, p); } catch(e){}
+    NT.picking = false;
+    renderMe(); renderPick(); renderThread(true); markRead(); renderNotesBadge();
+    try { $("notes-text").focus(); } catch(e){}
+  }
+  function renderPick(){
+    var need = !NT.me || !!NT.picking;
+    $("notes-pick").hidden = !need;
+    $("notes-emoji").hidden = need;
+    document.querySelector("#notes-form .n-row").hidden = need;
+    $("notes-attach").hidden = need || !NT.att;
+  }
+  function renderMe(){
+    var b = $("notes-me");
+    b.textContent = NT.me ? "You're " + NAMES[NT.me] : "Who are you?";
+    b.className = "n-me" + (NT.me ? " " + NT.me : "");
+  }
+  function openNotes(){
+    $("dash").hidden = true; $("story").hidden = true; $("form-view").hidden = true; $("talk-view").hidden = true;
+    $("notes-view").hidden = false;
+    $("app").classList.add("noting");
+    NT.picking = false;
+    renderMe(); renderPick();
+    NT.sig = "";
+    renderThread(true);
+    loadNotes();
+    if(NT.poll) clearInterval(NT.poll);
+    NT.poll = setInterval(function(){ if(document.visibilityState === "visible") loadNotes(); }, 8000);
+  }
+  function closeNotes(){
+    if(NT.poll){ clearInterval(NT.poll); NT.poll = null; }
+    $("notes-view").hidden = true; $("dash").hidden = false; $("story").hidden = false;
+    $("app").classList.remove("noting");
+    NT.ask = null;
+    renderAll();
+    window.scrollTo(0, 0);
+  }
+  function nearBottom(){ return (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 140); }
+  function toBottom(){ window.scrollTo(0, document.documentElement.scrollHeight); }
+  function onlyEmoji(s){
+    var t = s.trim();
+    if(!t || t.length > 24) return false;
+    try { return /^(?:\p{Extended_Pictographic}|\p{Emoji_Component}|‍|️|\s)+$/u.test(t) && !/[0-9#*]/.test(t); } catch(e){ return false; }
+  }
+  function dayLabel(d){
+    var t = today(), dd = new Date(d.getFullYear(), d.getMonth(), d.getDate()), diff = dayDiff(dd, t);
+    if(diff === 0) return "Today";
+    if(diff === 1) return "Yesterday";
+    return d.toLocaleDateString(undefined, diff < 7 ? {weekday:"long"} : {weekday:"short", day:"numeric", month:"short"});
+  }
+  function timeLabel(d){ return d.toLocaleTimeString(undefined, {hour:"numeric", minute:"2-digit"}); }
+  function loadImage(id){
+    if(NT.imgs[id] || NT.imgLoading[id]) return;
+    NT.imgLoading[id] = true;
+    sb.rpc("love_bank_note_image", { p_token:token, p_id:id }).then(function(res){
+      NT.imgLoading[id] = false;
+      if(res.error || typeof res.data !== "string" || !IMG_OK.test(res.data)) return;
+      NT.imgs[id] = res.data;
+      var stick = nearBottom();
+      document.querySelectorAll('img[data-note="' + id + '"]').forEach(function(im){ im.src = res.data; });
+      if(stick) setTimeout(toBottom, 30);
+    }, function(){ NT.imgLoading[id] = false; });
+  }
+  function renderThread(forceBottom){
+    var box = $("notes-thread");
+    var sig = NT.list.map(function(n){ return n.id + (n.readAt ? "r" : ""); }).join(",") + "|" + NT.me + "|" + NT.ask;
+    if(!forceBottom && sig === NT.sig) return;
+    NT.sig = sig;
+    var stick = forceBottom || nearBottom();
+    box.innerHTML = "";
+    if(!NT.list.length){
+      var e = h("div", "n-empty");
+      e.appendChild(h("p", "n-empty-big", NT.loaded ? "💌" : ""));
+      e.appendChild(h("p", null, NT.loaded ? "No notes yet. Send the first one: a line, a photo, a meme, or just a ❤️." : "Loading notes…"));
+      box.appendChild(e);
+      return;
+    }
+    var lastDay = "", lastMine = null;
+    NT.list.forEach(function(n){ if(n.sender === NT.me) lastMine = n.id; });
+    NT.list.forEach(function(n, i){
+      var d = new Date(n.at); if(isNaN(d.getTime())) d = new Date();
+      var dl = dayLabel(d);
+      if(dl !== lastDay){ box.appendChild(h("div", "n-day", dl)); lastDay = dl; }
+      var mine = NT.me && n.sender === NT.me;
+      var prev = NT.list[i - 1];
+      var m = h("div", "n-msg " + n.sender + (mine ? " mine" : " theirs") + (prev && prev.sender === n.sender && dayLabel(new Date(prev.at)) === dl ? " cont" : ""));
+      if(!NT.me && (!prev || prev.sender !== n.sender)) m.appendChild(h("span", "n-who", NAMES[n.sender]));
+      if(n.hasImage){
+        var im = document.createElement("img");
+        im.className = "n-img"; im.alt = "Picture from " + NAMES[n.sender]; im.setAttribute("data-note", n.id);
+        if(NT.imgs[n.id]) im.src = NT.imgs[n.id]; else loadImage(n.id);
+        im.addEventListener("click", function(ev){ ev.stopPropagation(); if(im.src) openViewer(im.src); });
+        m.appendChild(im);
+      }
+      if(n.body.trim()){
+        var big = !n.hasImage && onlyEmoji(n.body);
+        m.appendChild(h("div", "n-bub" + (big ? " big" : ""), n.body));
+      }
+      var meta = h("span", "n-meta", timeLabel(d));
+      if(mine && n.id === lastMine) meta.textContent += " · " + (n.readAt ? "Seen" : "Sent");
+      m.appendChild(meta);
+      if(mine){
+        m.classList.add("tappable");
+        m.addEventListener("click", function(){ NT.ask = NT.ask === n.id ? null : n.id; renderThread(false); });
+        if(NT.ask === n.id){
+          var row = h("div", "n-delrow");
+          var del = h("button", "btn-link danger", "Delete this note"); del.type = "button";
+          del.addEventListener("click", function(ev){
+            ev.stopPropagation(); del.disabled = true;
+            sb.rpc("love_bank_note_delete", { p_token:token, p_id:n.id, p_sender:NT.me }).then(function(res){
+              if(res.error){ del.disabled = false; notesStatus(isAuthError(res.error) ? "You've been signed out." : "Couldn't delete it just now.", true); return; }
+              NT.list = NT.list.filter(function(x){ return x.id !== n.id; }); NT.ask = null; renderThread(false);
+            }, function(){ del.disabled = false; notesStatus("Couldn't reach the server.", true); });
+          });
+          var keep = h("button", "btn-link", "Keep"); keep.type = "button";
+          keep.addEventListener("click", function(ev){ ev.stopPropagation(); NT.ask = null; renderThread(false); });
+          row.appendChild(del); row.appendChild(keep);
+          m.appendChild(row);
+        }
+      }
+      box.appendChild(m);
+    });
+    if(stick) setTimeout(toBottom, 0);
+  }
+  function openViewer(src){
+    var v = h("div", "n-viewer"); v.setAttribute("role", "dialog"); v.setAttribute("aria-label", "Picture");
+    var im = document.createElement("img"); im.src = src; im.alt = "";
+    var x = h("button", "n-viewer-x", "×"); x.type = "button"; x.setAttribute("aria-label", "Close");
+    v.appendChild(im); v.appendChild(x);
+    function close(){ v.remove(); document.removeEventListener("keydown", esc); }
+    function esc(e){ if(e.key === "Escape") close(); }
+    v.addEventListener("click", close);
+    document.addEventListener("keydown", esc);
+    document.body.appendChild(v);
+    x.focus();
+  }
+  function notesStatus(msg, err){ var s = $("notes-status"); s.textContent = msg || ""; s.className = "n-status" + (err ? " err" : ""); }
+  function setAttachment(data){
+    NT.att = data;
+    $("notes-attach").hidden = !data;
+    $("notes-attach-img").src = data || "";
+  }
+  function readAsDataURL(file){
+    return new Promise(function(res, rej){ var r = new FileReader(); r.onload = function(){ res(String(r.result)); }; r.onerror = rej; r.readAsDataURL(file); });
+  }
+  function shrink(file){
+    return new Promise(function(res, rej){
+      var url = URL.createObjectURL(file), im = new Image();
+      im.onload = function(){
+        function draw(maxSide, q){
+          var w = im.naturalWidth, hgt = im.naturalHeight, k = Math.min(1, maxSide / Math.max(w, hgt));
+          var c = document.createElement("canvas"); c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(hgt * k));
+          var g = c.getContext("2d"); g.fillStyle = "#ffffff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height);
+          return c.toDataURL("image/jpeg", q);
+        }
+        var out = draw(1600, 0.82);
+        if(out.length > IMG_MAX) out = draw(1200, 0.72);
+        URL.revokeObjectURL(url);
+        out.length > IMG_MAX ? rej(new Error("too_big")) : res(out);
+      };
+      im.onerror = function(){ URL.revokeObjectURL(url); rej(new Error("unreadable")); };
+      im.src = url;
+    });
+  }
+  function takeImage(file){
+    if(!file) return;
+    if(!/^image\//.test(file.type || "") && !/\.(jpe?g|png|gif|webp|heic|heif)$/i.test(file.name || "")){ notesStatus("That isn't a picture.", true); return; }
+    notesStatus("Preparing the picture…");
+    var job = file.type === "image/gif"
+      ? (file.size > GIF_MAX ? Promise.reject(new Error("gif_big")) : readAsDataURL(file))
+      : shrink(file);
+    job.then(function(data){
+      if(!IMG_OK.test(data)) throw new Error("unreadable");
+      setAttachment(data); notesStatus("");
+    }).catch(function(err){
+      var m = err && err.message;
+      notesStatus(m === "gif_big" ? "That GIF is too big. The limit is 3 MB." : m === "too_big" ? "That picture is too big even after shrinking." : "Couldn't read that picture. Try a screenshot of it instead.", true);
+    });
+  }
+  function sendNote(){
+    if(NT.sending) return;
+    var ta = $("notes-text"), body = ta.value.trim().slice(0, NOTE_MAX), img = NT.att;
+    if(!body && !img){ ta.focus(); return; }
+    if(!NT.me){ renderPick(); notesStatus("Pick who you are first.", true); return; }
+    NT.sending = true; $("notes-send").disabled = true; notesStatus("Sending…");
+    var me = NT.me;
+    sb.rpc("love_bank_note_send", { p_token:token, p_sender:me, p_body:body, p_image:img || null }).then(function(res){
+      NT.sending = false; $("notes-send").disabled = false;
+      if(res.error){ notesStatus(isAuthError(res.error) ? "You've been signed out. Reload and enter the password." : "Couldn't send just now. Your note is still here; try again.", true); return; }
+      var id = String(res.data);
+      if(img) NT.imgs[id] = img;
+      NT.list.push({ id:id, sender:me, body:body, hasImage:!!img, at:new Date().toISOString(), readAt:null });
+      ta.value = ""; growText(); setAttachment(null); $("notes-file").value = "";
+      notesStatus("");
+      renderThread(true);
+    }, function(){
+      NT.sending = false; $("notes-send").disabled = false;
+      notesStatus("Couldn't reach the server. Your note is still here; try again.", true);
+    });
+  }
+  function growText(){ var ta = $("notes-text"); ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight + 2, 140) + "px"; }
+  function insertAtCursor(s){
+    var ta = $("notes-text"), a = ta.selectionStart || ta.value.length, b = ta.selectionEnd || ta.value.length;
+    ta.value = ta.value.slice(0, a) + s + ta.value.slice(b);
+    var p = a + s.length; try { ta.setSelectionRange(p, p); } catch(e){}
+    growText();
+  }
+  (function buildComposer(){
+    var row = $("notes-emoji");
+    EMOJI.forEach(function(e){
+      var b = h("button", null, e); b.type = "button"; b.setAttribute("aria-label", "Add " + e);
+      b.addEventListener("click", function(){ insertAtCursor(e); });
+      row.appendChild(b);
+    });
+  })();
+  $("notes-btn").addEventListener("click", openNotes);
+  $("notes-back").addEventListener("click", closeNotes);
+  $("notes-me").addEventListener("click", function(){ NT.picking = !NT.picking; renderPick(); if(NT.picking) setTimeout(toBottom, 0); });
+  document.querySelectorAll("#notes-pick [data-me]").forEach(function(b){ b.addEventListener("click", function(){ setMe(b.getAttribute("data-me")); }); });
+  $("notes-form").addEventListener("submit", function(e){ e.preventDefault(); sendNote(); });
+  $("notes-text").addEventListener("input", growText);
+  $("notes-text").addEventListener("keydown", function(e){ if(e.key === "Enter" && (e.metaKey || e.ctrlKey)){ e.preventDefault(); sendNote(); } });
+  $("notes-text").addEventListener("paste", function(e){
+    var items = (e.clipboardData && e.clipboardData.items) || [];
+    for(var i = 0; i < items.length; i++){ if(items[i].kind === "file" && /^image\//.test(items[i].type)){ e.preventDefault(); takeImage(items[i].getAsFile()); return; } }
+  });
+  $("notes-file").addEventListener("change", function(){ takeImage(this.files && this.files[0]); });
+  $("notes-attach-x").addEventListener("click", function(){ setAttachment(null); $("notes-file").value = ""; });
+  setInterval(function(){ if(document.visibilityState === "visible" && S.authed && $("notes-view").hidden) loadNotes(); }, 60000);
+
   /* ---------- dashboard events ---------- */
   $("new-btn").addEventListener("click", function(){ openForm(null); });
   $("empty-btn").addEventListener("click", function(){ openForm(null); });
@@ -1963,6 +2329,7 @@ footer.foot p{max-width:70ch}
       if(S.confirm && !rows.some(function(r){ return r.id === S.confirm; })) S.confirm = null;
       if($("form-view").hidden && $("talk-view").hidden) renderAll(); else renderDue();
       loadTalks();
+      loadNotes();
     }, function(){
       loading = false; clearTimeout(slow);
       S.loaded = true; note("Couldn't reach the check-ins. Check your connection and reload."); renderAll();
@@ -1976,7 +2343,8 @@ footer.foot p{max-width:70ch}
   }
   function lock(){
     S.authed = false; S.loaded = false; S.rows = []; S.talks = []; T = null;
-    $("app").hidden = true; $("app").classList.remove("talking"); $("form-view").hidden = true; $("talk-view").hidden = true; $("dash").hidden = false; $("story").hidden = false; $("gate").hidden = false;
+    NT.list = []; NT.imgs = {}; NT.loaded = false; NT.sig = ""; if(NT.poll){ clearInterval(NT.poll); NT.poll = null; }
+    $("app").hidden = true; $("app").classList.remove("talking"); $("app").classList.remove("noting"); $("form-view").hidden = true; $("talk-view").hidden = true; $("notes-view").hidden = true; $("dash").hidden = false; $("story").hidden = false; $("gate").hidden = false;
     $("gate-pw").value = "";
     setTimeout(function(){ try { $("gate-pw").focus(); } catch(e){} }, 0);
   }
@@ -2011,7 +2379,8 @@ footer.foot p{max-width:70ch}
     if(t) sb.rpc("love_bank_logout", { p_token:t }).then(function(){}, function(){});
   });
   document.addEventListener("visibilitychange", function(){
-    if(document.visibilityState === "visible" && S.authed && $("form-view").hidden && $("talk-view").hidden) load();
+    if(document.visibilityState === "visible" && S.authed && $("form-view").hidden && $("talk-view").hidden && $("notes-view").hidden) load();
+    if(document.visibilityState === "visible" && S.authed && !$("notes-view").hidden){ loadNotes(); markRead(); }
     if(document.visibilityState === "hidden") flushTalk();
   });
 

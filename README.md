@@ -11,6 +11,10 @@ Each need also has an optional "why" comment (stored in `notes.why` as need→te
 | Database | Supabase project `family-finance`, ref `zijtjfdpvkfdxflutmpc` (shared with the finance app) |
 | Table | `public.love_bank_checkins` — one row per person per check-in: `person` (beth/david), `date`, `matters`/`met` (jsonb need→0-10), `rank` (jsonb array of need keys), `notes` (jsonb) |
 
+## Love notes
+
+A message thread between the two of you ("Love notes" in the header): text, quick emoji, photos and memes. Each phone is asked once who's using it (localStorage `love-bank-me`). Notes live in `public.love_bank_notes`; pictures are shrunk on the phone (JPEG, max 1600 px) or kept as-is for GIFs up to 3 MB, and stored inline as data URLs, fetched one at a time. Functions: `love_bank_notes_list`, `love_bank_note_send`, `love_bank_note_image`, `love_bank_notes_read` (marks the other person's notes seen), `love_bank_note_delete` (own notes only). The thread polls every 8 seconds while open and every minute otherwise; there are no push notifications yet.
+
 ## On the phone
 
 The site is an installable web app (`manifest.webmanifest`, icons in `icons/`). On iPhone: open the site in Safari, Share → Add to Home Screen. It opens full-screen with its own icon. The home-screen app keeps its own storage, so enter the password once inside it. Changes pushed to `main` reach the installed app too.
@@ -23,7 +27,7 @@ A date-night view (header button "Talk it through"): one need per screen with bo
 
 - One common password, no user accounts. Its bcrypt hash lives in `public.love_bank_secret` (single row).
 - `love_bank_login(p_password)` returns a random session token (or null for a wrong password). Only the token's SHA-256 is stored, in `love_bank_sessions`; sessions lapse after 180 days unused. The page keeps the token in localStorage (`love-bank-session`), so each device stays signed in.
-- All reads/writes go through `love_bank_list`, `love_bank_save`, `love_bank_delete`, `love_bank_talks_list`, `love_bank_talk_save` (all require a valid token). `love_bank_logout` ends one session. No table is granted to `anon`/`authenticated`; verified that direct table reads and `love_bank_set_password` are refused from the web.
+- All reads/writes go through `love_bank_list`, `love_bank_save`, `love_bank_delete`, `love_bank_talks_list`, `love_bank_talk_save` and the love-notes functions (all require a valid token). `love_bank_logout` ends one session. No table is granted to `anon`/`authenticated`; verified that direct table reads and `love_bank_set_password` are refused from the web.
 - Brute-force limit: after 10 wrong passwords in 15 minutes (counted in `love_bank_attempts`) logins are refused until the window passes.
 - **Set or change the password** in the Supabase dashboard → family-finance → SQL Editor:
   `select public.love_bank_set_password('the new password');`
