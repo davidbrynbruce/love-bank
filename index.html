@@ -412,6 +412,20 @@ footer.foot p{max-width:70ch}
 .talk-bar .tb-l{display:block;font-family:var(--font-body);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;line-height:1.3}
 .talk-bar .tb-name{font-family:var(--font-display);font-size:clamp(30px,7vw,40px);font-weight:500;color:var(--ink);line-height:1.05;min-width:0}
 .talk-bar .tb-count{font-size:12.5px;color:var(--ink-soft);white-space:nowrap;font-variant-numeric:tabular-nums}
+.t-h3{font-size:24px;margin-top:24px}
+.t-h3.first{margin-top:0;margin-bottom:6px}
+.t-plan-note{font-size:14.5px;color:var(--ink-soft);margin-top:4px;max-width:62ch}
+.t-plan-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.t-pick{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:1.5px dashed var(--ink-soft);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.t-pick.on{background:var(--accent);border:1.5px solid var(--accent);color:var(--accent-ink)}
+.t-list button[aria-pressed="true"] .t-ln{color:var(--accent)}
+.t-prompt{font-family:var(--font-display);font-size:21px;line-height:1.35;font-style:italic}
+.t-small{font-size:14px;margin-top:10px}
+.t-well{margin-top:10px}
+.t-plan-line{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.t-plan-line .chip{font-size:13px;padding:4px 10px}
+.tp-first{display:inline-block;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--accent-ink);background:var(--accent);border-radius:999px;padding:2px 8px;margin-left:8px;vertical-align:middle}
+.sayback{margin-top:10px;font-size:13.5px;color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:8px}
 .talk-status{font-size:13px;color:var(--ink-soft);min-height:1.4em;text-align:center}
 .talk-status.err{color:var(--bad)}
 .t-sum{display:flex;flex-direction:column;gap:0;margin-top:14px}
@@ -1465,6 +1479,8 @@ footer.foot p{max-width:70ch}
     if(!d || !parseDate(d.date)) return null;
     var t = { id:String(d.id), date:d.date, createdAt:str(d.created_at, 40), notes:{} };
     if(d.notes && typeof d.notes === "object") NEEDS.forEach(function(n){ var s = str(d.notes[n.k], AGREE_MAX).trim(); if(s) t.notes[n.k] = s; });
+    t.plan = [];
+    if(d.notes && Array.isArray(d.notes._plan)) d.notes._plan.forEach(function(k){ if(NEED_BY[k] && t.plan.indexOf(k) < 0) t.plan.push(k); });
     return t;
   }
   function talksSorted(){ return S.talks.slice().sort(byDate); }
@@ -1496,12 +1512,24 @@ footer.foot p{max-width:70ch}
     });
     return list;
   }
+  /* A talk's screens: intro (shortlist), warm-up, one per need, wrap-up. */
+  function talkList(){ return T.plan.length ? T.plan.map(function(k){ return NEED_BY[k]; }) : talkOrder(T.how); }
+  function needStep(i){ return i + 2; }
+  function lastStep(){ return T.list.length + 2; }
   function openTalk(){
     var day = iso(today());
-    var existing = S.talks.filter(function(t){ return t.date === day; })[0];
+    var ts = talksSorted();
+    var existing = ts.filter(function(t){ return t.date === day; })[0];
+    if(!existing){
+      /* A shortlist made ahead of time (a talk with a plan but nothing agreed yet) carries over to the day itself. */
+      var last = ts[ts.length-1];
+      if(last && last.plan.length && !Object.keys(last.notes).length) existing = last;
+    }
     var how = "gap";
     try { var o = localStorage.getItem("love-bank-talk-order"); if(["gap","beth","david","book"].indexOf(o) >= 0) how = o; } catch(e){}
-    T = { id:existing ? existing.id : null, date:day, notes:existing ? Object.assign({}, existing.notes) : {}, how:how, list:talkOrder(how), step:0, dirty:false, saving:false, again:false, timer:null };
+    T = { id:existing ? existing.id : null, date:day, notes:existing ? Object.assign({}, existing.notes) : {}, plan:existing ? existing.plan.slice() : [],
+          how:how, list:[], step:0, dirty:false, saving:false, again:false, timer:null };
+    T.list = talkList();
     $("talk-status").textContent = ""; $("talk-status").className = "talk-status";
     $("dash").hidden = true; $("story").hidden = true; $("form-view").hidden = true; $("talk-view").hidden = false;
     $("app").classList.add("talking");
@@ -1517,13 +1545,37 @@ footer.foot p{max-width:70ch}
   }
   function goTalk(step){
     flushTalk();
-    T.step = Math.max(0, Math.min(T.list.length + 1, step));
+    T.step = Math.max(0, Math.min(lastStep(), step));
     renderTalk();
     window.scrollTo(0, 0);
   }
   function previousAgreement(k){
     var ts = talksSorted().filter(function(t){ return t.date < T.date && t.notes[k]; });
     return ts.length ? ts[ts.length-1] : null;
+  }
+  function setPlan(plan){
+    T.plan = plan; T.list = talkList(); T.dirty = true; queueTalkSave(); renderTalk();
+  }
+  /* Four needs, taking turns: each person's biggest weighted gap not yet picked, Beth first. */
+  function suggestPlan(){
+    var L = { beth:latestOf("beth"), david:latestOf("david") }, Q = {};
+    ORDER.forEach(function(p){
+      Q[p] = L[p] ? gapsOf(L[p]).filter(function(g){ return g.gap > 0; }).sort(function(x, y){ return (y.w - x.w) || (x.n.i - y.n.i); }).map(function(g){ return g.n.k; }) : [];
+    });
+    var out = [], turn = 0, guard = 0;
+    while(out.length < 4 && guard++ < 40){
+      var p = ORDER[turn % 2]; turn++;
+      var next = Q[p].filter(function(k){ return out.indexOf(k) < 0; })[0];
+      if(next) out.push(next);
+      if(!Q.beth.some(function(k){ return out.indexOf(k) < 0; }) && !Q.david.some(function(k){ return out.indexOf(k) < 0; })) break;
+    }
+    return out;
+  }
+  /* Whose gap is bigger on this need talks first. */
+  function firstSpeaker(n){
+    var w = {};
+    ORDER.forEach(function(p){ var r = latestOf(p); w[p] = 0; if(r) gapsOf(r).forEach(function(g){ if(g.n.k === n.k) w[p] = g.w; }); });
+    return w.david > w.beth ? "david" : "beth";
   }
 
   /* Questions for one person about one need, asked by the other. */
@@ -1549,10 +1601,12 @@ footer.foot p{max-width:70ch}
     if(pb !== undefined && Math.abs(b - pb) >= 2) qs.push("How " + nl + " is going moved from " + pb + " to " + b + " since " + fmtShort(prev.date) + ". What changed?");
     return qs;
   }
-  function personBlock(p, n){
+  function personBlock(p, n, first){
     var r = latestOf(p), box = h("div", "tp " + p);
     var head = h("div", "tp-head");
-    head.appendChild(h("span", "tp-name", NAMES[p]));
+    var nm = h("span"); nm.appendChild(h("span", "tp-name", NAMES[p]));
+    if(first) nm.appendChild(h("span", "tp-first", "Talks first"));
+    head.appendChild(nm);
     if(r){ var rk = r.rank.indexOf(n.k); head.appendChild(h("span", "tp-rank", rk >= 0 ? "#" + (rk + 1) + " in top five" : "Not in top five")); }
     box.appendChild(head);
     if(!r || r.matters[n.k] === undefined || r.met[n.k] === undefined){
@@ -1585,6 +1639,7 @@ footer.foot p{max-width:70ch}
     if(qs.length){
       var ask = h("div", "ask"); ask.appendChild(h("span", "ql", NAMES[OTHER[p]] + " asks " + NAMES[p] + " about " + n.n.toLowerCase()));
       var ul = h("ul"); qs.forEach(function(q){ ul.appendChild(h("li", null, q)); }); ask.appendChild(ul);
+      ask.appendChild(h("p", "sayback", NAMES[OTHER[p]] + ": before you reply, say back what you heard (\"So what I'm hearing is…\") until " + NAMES[p] + " says \"yes, that's it\"."));
       box.appendChild(ask);
     }
     return box;
@@ -1602,39 +1657,74 @@ footer.foot p{max-width:70ch}
     if(gb >= 2 && gd >= 2) qs.push("You both feel a gap in " + n.n.toLowerCase() + ". Is it the same thing missing for each of you, or two different things?");
     return qs;
   }
+  function stepHead(eyebrow, title){
+    var bar = h("div", "talk-bar");
+    var bh = h("h2", "tb-name"); bh.appendChild(h("span", "tb-l", eyebrow)); bh.appendChild(document.createTextNode(title));
+    bar.appendChild(bh);
+    bar.appendChild(h("span", "tb-count", fmtShort(T.date)));
+    return bar;
+  }
+  function planLine(){
+    var line = h("div", "t-plan-line");
+    T.list.forEach(function(n, i){
+      var c = h("span", "chip " + firstSpeaker(n), (i + 1) + ". " + n.n);
+      line.appendChild(c);
+    });
+    return line;
+  }
   function renderTalk(){
     var body = $("talk-body"); body.innerHTML = "";
-    var N = T.list.length, s = T.step;
+    var N = T.list.length, s = T.step, last = lastStep();
     $("talk-prev").hidden = s === 0;
-    $("talk-next").textContent = s === 0 ? "Start →" : s === N ? "Finish →" : s > N ? "Back to the tracker" : "Next →";
-    $("talk-pos").textContent = s === 0 ? "" : s > N ? "Done" : s + " of " + N;
+    $("talk-next").textContent = s === 0 ? "Start →" : s === 1 ? "First need →" : s === last - 1 ? "Wrap up →" : s === last ? "Back to the tracker" : "Next →";
+    $("talk-pos").textContent = s === 0 ? "" : s === 1 ? "Warm-up" : s === last ? "Wrap-up" : (s - 1) + " of " + N;
 
     if(s === 0){
       var wrap = h("section", "panel");
       wrap.appendChild(h("p", "t-eyebrow", fmt(T.date)));
       wrap.appendChild(h("h2", "t-title", "Talk it through"));
-      wrap.appendChild(h("p", "t-lead", "One need at a time: both your numbers, what you each wrote, and a few questions to ask. You don't need to get through all ten. Start at the top and stop when you've had enough."));
+      wrap.appendChild(h("p", "t-lead", "One need at a time: both your numbers, what you each wrote, and questions to ask. Pick three or four for one evening; you don't need all ten."));
       var rules = h("ul", "t-rules");
-      ["The person whose numbers they are talks first. The other only asks questions until they've finished.",
+      ["Start with what's working. The warm-up screen has prompts.",
+       "The person whose numbers they are talks first. The other only asks questions.",
+       "Before replying, say back what you heard until they say \"yes, that's it\".",
        "Ask about the number, don't argue with it. It's how it feels, not a verdict.",
-       "End each one with something small to try. It saves as you type, and shows on the tracker until your next talk."
+       "End each need with one small thing to try. It saves as you type."
       ].forEach(function(t){ rules.appendChild(h("li", null, t)); });
       wrap.appendChild(rules);
-      var ord = h("div", "t-order");
-      var lab = h("label", "flabel", "Order"); lab.htmlFor = "talk-order"; lab.style.margin = "0";
-      var sel = document.createElement("select"); sel.id = "talk-order";
-      [["gap", "Biggest gaps first"], ["beth", "Beth's top five first"], ["david", "David's top five first"], ["book", "Book order"]].forEach(function(o){
-        var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; sel.appendChild(op);
-      });
-      sel.value = T.how;
-      sel.addEventListener("change", function(){ T.how = sel.value; T.list = talkOrder(T.how); try { localStorage.setItem("love-bank-talk-order", T.how); } catch(e){} renderTalk(); });
-      ord.appendChild(lab); ord.appendChild(sel);
-      wrap.appendChild(ord);
+
+      wrap.appendChild(h("h3", "t-h3", "Tonight's shortlist"));
+      wrap.appendChild(h("p", "t-plan-note", T.plan.length
+        ? "You'll go through these " + T.plan.length + ", in the order you tapped them. Tap one again to take it off. It's saved, so it shows on either phone."
+        : "Tap needs to add them, in the order you want to talk about them, or let it suggest four, taking turns between you. Leave it empty to go through all ten."));
+      var tools = h("div", "t-plan-tools");
+      var sg = h("button", "btn-sub", T.plan.length ? "Replace with a suggestion" : "Suggest four"); sg.type = "button";
+      sg.addEventListener("click", function(){ setPlan(suggestPlan()); });
+      tools.appendChild(sg);
+      if(T.plan.length){
+        var cl = h("button", "btn-sub", "Clear"); cl.type = "button";
+        cl.addEventListener("click", function(){ setPlan([]); });
+        tools.appendChild(cl);
+      } else {
+        var lab = h("label", "flabel", "Order"); lab.htmlFor = "talk-order"; lab.style.margin = "0 0 0 6px";
+        var sel = document.createElement("select"); sel.id = "talk-order";
+        [["gap", "Biggest gaps first"], ["beth", "Beth's top five first"], ["david", "David's top five first"], ["book", "Book order"]].forEach(function(o){
+          var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; sel.appendChild(op);
+        });
+        sel.value = T.how;
+        sel.addEventListener("change", function(){ T.how = sel.value; T.list = talkList(); try { localStorage.setItem("love-bank-talk-order", T.how); } catch(e){} renderTalk(); });
+        tools.appendChild(lab); tools.appendChild(sel);
+      }
+      wrap.appendChild(tools);
+
       var ol = h("ul", "t-list");
       var L = { beth:latestOf("beth"), david:latestOf("david") };
-      T.list.forEach(function(n, i){
+      talkOrder(T.how).forEach(function(n){
         var li = h("li"), b = h("button"); b.type = "button";
-        b.appendChild(h("span", "t-num", String(i + 1)));
+        var pos = T.plan.indexOf(n.k);
+        b.setAttribute("aria-pressed", String(pos >= 0));
+        b.setAttribute("aria-label", n.n + (pos >= 0 ? ", number " + (pos + 1) + " on the shortlist. Tap to remove." : ". Tap to add to the shortlist."));
+        b.appendChild(h("span", "t-pick" + (pos >= 0 ? " on" : ""), pos >= 0 ? String(pos + 1) : "+"));
         b.appendChild(h("span", "t-ln", n.n));
         var ch = h("span", "t-chips");
         ORDER.forEach(function(p){
@@ -1646,7 +1736,11 @@ footer.foot p{max-width:70ch}
         });
         b.appendChild(ch);
         if(T.notes[n.k]) b.appendChild(h("span", "t-done", "✓ Agreed something"));
-        b.addEventListener("click", function(){ goTalk(i + 1); });
+        b.addEventListener("click", function(){
+          var p2 = T.plan.slice(), at = p2.indexOf(n.k);
+          if(at >= 0) p2.splice(at, 1); else p2.push(n.k);
+          setPlan(p2);
+        });
         li.appendChild(b); ol.appendChild(li);
       });
       wrap.appendChild(ol);
@@ -1654,28 +1748,73 @@ footer.foot p{max-width:70ch}
       return;
     }
 
-    if(s > N){
-      var done = h("section", "panel");
-      done.appendChild(h("p", "t-eyebrow", fmt(T.date)));
-      done.appendChild(h("h2", "t-title", "What you agreed"));
+    if(s === 1){
+      var w = h("section", "t-need");
+      w.appendChild(stepHead("Warm-up", "Start with what's working"));
+      var why = h("div", "panel");
+      why.appendChild(h("h3", "t-h3 first", "Say why you're doing this"));
+      why.appendChild(h("p", "t-prompt", "In your own words: this isn't keeping score. It's making asking what the other one needs an ordinary part of you."));
+      w.appendChild(why);
+      var good = h("div", "panel");
+      good.appendChild(h("h3", "t-h3 first", "One thing each"));
+      good.appendChild(h("p", "t-prompt", "Each of you: name one specific thing the other did recently that you appreciated. Be literal: what happened, what was said."));
+      good.appendChild(h("p", "muted t-small", "What each of you rated as going well, as a prompt:"));
+      var cols = h("div", "two t-well");
+      ORDER.forEach(function(p){
+        var col = h("div", "col " + p); col.appendChild(h("h3", null, NAMES[p]));
+        var r = latestOf(p);
+        var well = r ? NEEDS.filter(function(n){ return r.met[n.k] !== undefined && r.matters[n.k] !== undefined && ((r.met[n.k] >= r.matters[n.k] && r.met[n.k] >= 6) || r.met[n.k] >= 8); })
+          .sort(function(x, y){ return (r.met[y.k] - r.met[x.k]) || (r.matters[y.k] - r.matters[x.k]); }).slice(0, 3) : [];
+        if(!well.length){ col.appendChild(h("p", "muted", r ? "Nothing rated as fully met yet. Pick anything from the last few weeks." : "No check-in yet.")); }
+        else {
+          var ul = h("ul", "flist");
+          well.forEach(function(n){ var li = h("li"); li.appendChild(h("span", "fn", n.n)); li.appendChild(h("span", "fd", "going " + r.met[n.k] + ", matters " + r.matters[n.k])); ul.appendChild(li); });
+          col.appendChild(ul);
+        }
+        cols.appendChild(col);
+      });
+      good.appendChild(cols);
+      w.appendChild(good);
+      var tonight = h("div", "panel");
+      tonight.appendChild(h("h3", "t-h3 first", "Tonight"));
+      tonight.appendChild(h("p", "muted t-small", (T.plan.length ? "Your shortlist" : "All ten, in this order") + ". Colour shows who talks first on each one."));
+      tonight.appendChild(planLine());
+      w.appendChild(tonight);
+      body.appendChild(w);
+      return;
+    }
+
+    if(s === last){
+      var done = h("section", "t-need");
+      done.appendChild(stepHead("Wrap-up", "What you agreed"));
+      var sumP = h("div", "panel");
       var keys = T.list.filter(function(n){ return (T.notes[n.k] || "").trim(); });
-      if(!keys.length){ done.appendChild(h("p", "t-lead muted", "Nothing written down this time. That's fine; the talk was the point.")); }
+      if(!keys.length){ sumP.appendChild(h("p", "t-lead muted", "Nothing written down this time. That's fine; the talk was the point.")); }
       else {
-        done.appendChild(h("p", "t-lead muted", "Saved. This shows on the tracker until your next talk, so you can both see it over the next two weeks."));
+        sumP.appendChild(h("p", "muted t-small", "Read these back to each other. They're saved, and show on the tracker until your next talk."));
         var sm = h("div", "t-sum");
         keys.forEach(function(n){ var d = h("div"); d.appendChild(h("h3", null, n.n)); d.appendChild(h("p", null, T.notes[n.k].trim())); sm.appendChild(d); });
-        done.appendChild(sm);
+        sumP.appendChild(sm);
       }
+      done.appendChild(sumP);
+      var end = h("div", "panel");
+      end.appendChild(h("h3", "t-h3 first", "Before you finish"));
+      end.appendChild(h("p", "t-prompt", "Each of you: one thing you appreciated about tonight's conversation."));
+      if(S.rows.length){
+        var latest = S.rows.reduce(function(m, r){ return r.date > m ? r.date : m; }, "");
+        end.appendChild(h("p", "muted t-small", "Next check-in: " + fmt(addDays(parseDate(latest), CYCLE), {weekday:"long", day:"numeric", month:"long"}) + ". Each on your own, before you look at the other's."));
+      }
+      done.appendChild(end);
       body.appendChild(done);
       return;
     }
 
-    var n = T.list[s - 1];
+    var idx = s - 2, n = T.list[idx];
     var card = h("section", "t-need");
     var bar = h("div", "talk-bar");
     var bh = h("h2", "tb-name"); bh.appendChild(h("span", "tb-l", "Talking about")); bh.appendChild(document.createTextNode(n.n));
     bar.appendChild(bh);
-    bar.appendChild(h("span", "tb-count", "Need " + s + " of " + N));
+    bar.appendChild(h("span", "tb-count", "Need " + (idx + 1) + " of " + N));
     card.appendChild(bar);
     var top = h("div");
     top.appendChild(h("p", "desc", n.d));
@@ -1684,7 +1823,8 @@ footer.foot p{max-width:70ch}
     top.appendChild(more);
     card.appendChild(top);
     var people = h("div", "t-people");
-    ORDER.forEach(function(p){ people.appendChild(personBlock(p, n)); });
+    var fs = firstSpeaker(n);
+    [fs, OTHER[fs]].forEach(function(p){ people.appendChild(personBlock(p, n, p === fs)); });
     card.appendChild(people);
     var tq = togetherQs(n);
     if(tq.length){
@@ -1716,10 +1856,13 @@ footer.foot p{max-width:70ch}
     if(T.saving){ T.again = true; return; }
     var notes = {};
     NEEDS.forEach(function(n){ var s = (T.notes[n.k] || "").trim().slice(0, AGREE_MAX); if(s) notes[n.k] = s; });
-    if(!T.id && !Object.keys(notes).length){ T.dirty = false; return; }
+    var plan = T.plan.filter(function(k){ return NEED_BY[k]; });
+    if(!T.id && !Object.keys(notes).length && !plan.length){ T.dirty = false; return; }
+    var payload = Object.assign({}, notes);
+    if(plan.length) payload._plan = plan;
     var t = T; t.saving = true; t.dirty = false;
     talkStatus("Saving…");
-    sb.rpc("love_bank_talk_save", { p_token:token, p_id:t.id, p_date:t.date, p_notes:notes }).then(function(res){
+    sb.rpc("love_bank_talk_save", { p_token:token, p_id:t.id, p_date:t.date, p_notes:payload }).then(function(res){
       t.saving = false;
       if(res.error){
         t.dirty = true;
@@ -1728,7 +1871,7 @@ footer.foot p{max-width:70ch}
         talkStatus("Couldn't save just now. It'll try again when you type or move on.", true); return;
       }
       t.id = String(res.data);
-      var rec = { id:t.id, date:t.date, createdAt:"", notes:notes };
+      var rec = { id:t.id, date:t.date, createdAt:"", notes:notes, plan:plan.slice() };
       var found = false;
       S.talks = S.talks.map(function(x){ if(x.id === t.id){ found = true; rec.createdAt = x.createdAt; return rec; } return x; });
       if(!found){ rec.createdAt = new Date().toISOString(); S.talks.push(rec); }
@@ -1756,7 +1899,7 @@ footer.foot p{max-width:70ch}
   $("agreed-open").addEventListener("click", openTalk);
   $("talk-back").addEventListener("click", closeTalk);
   $("talk-prev").addEventListener("click", function(){ goTalk(T.step - 1); });
-  $("talk-next").addEventListener("click", function(){ if(T.step > T.list.length) closeTalk(); else goTalk(T.step + 1); });
+  $("talk-next").addEventListener("click", function(){ if(T.step >= lastStep()) closeTalk(); else goTalk(T.step + 1); });
   window.addEventListener("pagehide", function(){ flushTalk(); });
 
   /* ---------- dashboard events ---------- */
