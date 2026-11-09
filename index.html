@@ -272,6 +272,8 @@ select{font-family:inherit;font-size:14px;color:var(--ink);background:var(--surf
 .hdetail table{border-collapse:collapse;width:100%;font-size:13.5px}
 .hdetail th,.hdetail td{text-align:left;padding:3px 6px 3px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
 .hdetail th{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.hdetail td.hrank{width:2.2em;color:var(--accent);font-weight:700}
+.hdetail tr.top td:nth-child(2){font-weight:700}
 .hnotes{display:flex;flex-direction:column;gap:10px;font-size:14px;min-width:0}
 .hnotes .ql{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
 .hnotes p{white-space:pre-wrap;overflow-wrap:anywhere}
@@ -950,6 +952,16 @@ footer.foot p{max-width:70ch}
     });
     return out;
   }
+  /* A check-in's needs from most to least important: the top five in order, then the rest by how
+     much they matter, then by the bigger gap; unrated needs last. */
+  function rankedNeeds(r){
+    function order(n){ var a = r.matters[n.k], b = r.met[n.k]; return { rk:r.rank.indexOf(n.k), a:a === undefined ? -1 : a, gap:(a === undefined || b === undefined) ? -99 : a - b }; }
+    return NEEDS.slice().sort(function(x, y){
+      var X = order(x), Y = order(y);
+      var rx = X.rk < 0 ? 99 : X.rk, ry = Y.rk < 0 ? 99 : Y.rk;
+      return (rx - ry) || (Y.a - X.a) || (Y.gap - X.gap) || (x.i - y.i);
+    });
+  }
   function gapClass(g){ return g >= 4 ? "bad" : g >= 2 ? "warn" : "good"; }
 
   /* ---------- render: masthead ---------- */
@@ -1289,21 +1301,22 @@ footer.foot p{max-width:70ch}
       if(S.open[r.id]){
         var dt = h("div", "hdetail");
         var tbl = h("table"), thead = h("tr");
-        ["Need", "Matters", "Going", "#"].forEach(function(t){ thead.appendChild(h("th", null, t)); });
+        ["#", "Need", "Matters", "Going"].forEach(function(t){ thead.appendChild(h("th", null, t)); });
         tbl.appendChild(thead);
-        NEEDS.forEach(function(n){
-          var tr = h("tr");
+        var ranked = rankedNeeds(r);
+        ranked.forEach(function(n){
+          var rk = r.rank.indexOf(n.k);
+          var tr = h("tr", rk >= 0 ? "top" : null);
+          tr.appendChild(h("td", "hrank", rk >= 0 ? String(rk + 1) : ""));
           var nc = h("td", null, n.n); nc.title = n.m; tr.appendChild(nc);
           tr.appendChild(h("td", null, r.matters[n.k] !== undefined ? String(r.matters[n.k]) : "–"));
           tr.appendChild(h("td", null, r.met[n.k] !== undefined ? String(r.met[n.k]) : "–"));
-          var rk = r.rank.indexOf(n.k);
-          tr.appendChild(h("td", null, rk >= 0 ? String(rk + 1) : ""));
           tbl.appendChild(tr);
         });
         dt.appendChild(tbl);
         var nt = h("div", "hnotes");
         var any = false;
-        var whys = NEEDS.filter(function(n){ return r.why[n.k]; });
+        var whys = ranked.filter(function(n){ return r.why[n.k]; });
         if(whys.length){
           any = true;
           var wd = h("div"); wd.appendChild(h("span", "ql", "Behind the ratings"));
