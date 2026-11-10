@@ -449,6 +449,34 @@ footer.foot p{max-width:70ch}
 .agreed h3{font-size:20px;margin-bottom:2px}
 .agreed p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px}
 
+/* ---------- recording a talk ---------- */
+.talk-nav .rec-bar{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;padding:2px 0 8px;border-bottom:1px dashed var(--line);margin-bottom:2px}
+.rec-state{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:13.5px;min-width:0}
+.rec-dot{width:11px;height:11px;border-radius:50%;background:#d6342c;box-shadow:0 0 0 3px rgba(214,52,44,.2);animation:recpulse 1.4s ease-in-out infinite}
+.rec-dot.paused{background:var(--ink-soft);box-shadow:none;animation:none}
+@keyframes recpulse{50%{opacity:.35}}
+.rec-time{font-weight:700;font-variant-numeric:tabular-nums}
+.rec-clips{color:var(--ink-soft);font-size:12.5px}
+.rec-btns{display:flex;gap:6px}
+.rec-btns .btn-sub{padding:6px 12px}
+.rec-stop{color:var(--bad)}
+.rec-msg{flex-basis:100%;font-size:13px;color:var(--ink-soft)}
+.rec-msg.err{color:var(--bad)}
+.rec-panel{display:flex;flex-direction:column;gap:10px}
+.rec-panel .t-small{margin-top:0}
+.rec-consent{display:flex;align-items:flex-start;gap:8px;font-size:15px;font-weight:700;cursor:pointer}
+.rec-consent input{width:20px;height:20px;margin-top:2px;accent-color:var(--accent)}
+.rec-go{align-self:flex-start}
+.rec-go[disabled],.rec-panel .btn-accent[disabled]{opacity:.5;cursor:default}
+.rec-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.draft .flabel{margin:6px 0 4px}
+.draft textarea{min-height:72px;font-size:15.5px}
+.draft-need{border-top:1px solid var(--line);padding-top:12px;margin-top:4px;display:flex;flex-direction:column}
+.draft-need h3{font-size:22px;margin-bottom:2px}
+.draft-sug{font-size:13.5px;color:var(--ink-soft);margin-top:6px}
+.t-overall{font-family:var(--font-display);font-style:italic;font-size:19px;line-height:1.4;margin-top:10px}
+.t-sum .t-talked{color:var(--ink-soft);font-size:14.5px;margin-bottom:4px}
+.agreed-overall{font-family:var(--font-display);font-style:italic;font-size:18px;line-height:1.4;margin:-6px 0 14px;max-width:70ch}
 /* ---------- love notes ---------- */
 .vh{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;opacity:0}
 .noting header.band{display:none}
@@ -730,6 +758,7 @@ footer.foot p{max-width:70ch}
   </div>
   <div id="talk-body"></div>
   <nav class="talk-nav" id="talk-nav" aria-label="Move between needs">
+    <div class="rec-bar" id="rec-bar" role="status" hidden></div>
     <button type="button" class="btn-sub" id="talk-prev">← Back</button>
     <span class="talk-pos" id="talk-pos"></span>
     <button type="button" class="btn-accent" id="talk-next">Next →</button>
@@ -1608,6 +1637,9 @@ footer.foot p{max-width:70ch}
     if(!d || !parseDate(d.date)) return null;
     var t = { id:String(d.id), date:d.date, createdAt:str(d.created_at, 40), notes:{} };
     if(d.notes && typeof d.notes === "object") NEEDS.forEach(function(n){ var s = str(d.notes[n.k], AGREE_MAX).trim(); if(s) t.notes[n.k] = s; });
+    t.summary = {};
+    if(d.notes && d.notes._summary && typeof d.notes._summary === "object") NEEDS.forEach(function(n){ var s = str(d.notes._summary[n.k], AGREE_MAX).trim(); if(s) t.summary[n.k] = s; });
+    t.overall = d.notes ? str(d.notes._overall, AGREE_MAX).trim() : "";
     t.plan = [];
     if(d.notes && Array.isArray(d.notes._plan)) d.notes._plan.forEach(function(k){ if(NEED_BY[k] && t.plan.indexOf(k) < 0) t.plan.push(k); });
     return t;
@@ -1657,8 +1689,11 @@ footer.foot p{max-width:70ch}
     var how = "gap";
     try { var o = localStorage.getItem("love-bank-talk-order"); if(["gap","beth","david","book"].indexOf(o) >= 0) how = o; } catch(e){}
     T = { id:existing ? existing.id : null, date:day, notes:existing ? Object.assign({}, existing.notes) : {}, plan:existing ? existing.plan.slice() : [],
+          summary:existing ? Object.assign({}, existing.summary || {}) : {}, overall:existing ? (existing.overall || "") : "",
           how:how, list:[], step:0, dirty:false, saving:false, again:false, timer:null };
     T.list = talkList();
+    restoreClips(); RC.draft = null; RC.msg = ""; RC.err = false;
+    if(!RC.status || !RC.status.transcribe || !RC.status.writeup) aiStatus();
     $("talk-status").textContent = ""; $("talk-status").className = "talk-status";
     $("dash").hidden = true; $("story").hidden = true; $("form-view").hidden = true; $("talk-view").hidden = false;
     $("app").classList.add("talking");
@@ -1666,6 +1701,7 @@ footer.foot p{max-width:70ch}
     window.scrollTo(0, 0);
   }
   function closeTalk(){
+    stopRecording();
     flushTalk();
     $("talk-view").hidden = true; $("dash").hidden = false; $("story").hidden = false;
     $("app").classList.remove("talking");
@@ -1675,6 +1711,7 @@ footer.foot p{max-width:70ch}
   function goTalk(step){
     flushTalk();
     T.step = Math.max(0, Math.min(lastStep(), step));
+    onStepChange();
     renderTalk();
     window.scrollTo(0, 0);
   }
@@ -1807,6 +1844,7 @@ footer.foot p{max-width:70ch}
     $("talk-prev").hidden = s === 0;
     $("talk-next").textContent = s === 0 ? "Start →" : s === 1 ? "First need →" : s === last - 1 ? "Wrap up →" : s === last ? "Back to the tracker" : "Next →";
     $("talk-pos").textContent = s === 0 ? "" : s === 1 ? "Warm-up" : s === last ? "Wrap-up" : (s - 1) + " of " + N;
+    renderRecBar();
 
     if(s === 0){
       var wrap = h("section", "panel");
@@ -1874,6 +1912,7 @@ footer.foot p{max-width:70ch}
       });
       wrap.appendChild(ol);
       body.appendChild(wrap);
+      body.appendChild(recordPanel());
       return;
     }
 
@@ -1916,13 +1955,21 @@ footer.foot p{max-width:70ch}
     if(s === last){
       var done = h("section", "t-need");
       done.appendChild(stepHead("Wrap-up", "What you agreed"));
+      if(RC.on || RC.clips.length || RC.draft || RC.msg) done.appendChild(writeUpPanel());
       var sumP = h("div", "panel");
-      var keys = T.list.filter(function(n){ return (T.notes[n.k] || "").trim(); });
-      if(!keys.length){ sumP.appendChild(h("p", "t-lead muted", "Nothing written down this time. That's fine; the talk was the point.")); }
+      var keys = NEEDS.filter(function(n){ return (T.notes[n.k] || "").trim() || (T.summary[n.k] || "").trim(); });
+      keys.sort(function(a, b){ var ia = T.list.indexOf(a), ib = T.list.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.i - b.i; });
+      if(!keys.length && !T.overall){ sumP.appendChild(h("p", "t-lead muted", "Nothing written down this time. That's fine; the talk was the point.")); }
       else {
         sumP.appendChild(h("p", "muted t-small", "Read these back to each other. They're saved, and show on the tracker until your next talk."));
+        if(T.overall) sumP.appendChild(h("p", "t-overall", T.overall));
         var sm = h("div", "t-sum");
-        keys.forEach(function(n){ var d = h("div"); d.appendChild(h("h3", null, n.n)); d.appendChild(h("p", null, T.notes[n.k].trim())); sm.appendChild(d); });
+        keys.forEach(function(n){
+          var d = h("div"); d.appendChild(h("h3", null, n.n));
+          if((T.summary[n.k] || "").trim()) d.appendChild(h("p", "t-talked", T.summary[n.k].trim()));
+          if((T.notes[n.k] || "").trim()) d.appendChild(h("p", null, T.notes[n.k].trim()));
+          sm.appendChild(d);
+        });
         sumP.appendChild(sm);
       }
       done.appendChild(sumP);
@@ -1961,6 +2008,15 @@ footer.foot p{max-width:70ch}
       var tul = h("ul"); tq.forEach(function(q){ tul.appendChild(h("li", null, q)); }); tg.appendChild(tul);
       card.appendChild(tg);
     }
+    if((T.summary[n.k] || "").trim()){
+      var sp = h("div", "panel t-agree");
+      var sl = h("label", null, "What we talked about"); sl.htmlFor = "talk-summary"; sp.appendChild(sl);
+      sp.appendChild(h("p", "hint", "From the recording's write-up. Edit it if it's not quite right."));
+      var st = document.createElement("textarea"); st.id = "talk-summary"; st.maxLength = AGREE_MAX; st.value = T.summary[n.k];
+      st.addEventListener("input", function(){ T.summary[n.k] = st.value; T.dirty = true; queueTalkSave(); });
+      sp.appendChild(st);
+      card.appendChild(sp);
+    }
     var ag = h("div", "panel t-agree");
     var al = h("label", null, "What we'll try for " + n.n.toLowerCase()); al.htmlFor = "talk-agree"; ag.appendChild(al);
     ag.appendChild(h("p", "hint", "One small, specific thing for the next two weeks, and who'll do it. Optional."));
@@ -1986,9 +2042,14 @@ footer.foot p{max-width:70ch}
     var notes = {};
     NEEDS.forEach(function(n){ var s = (T.notes[n.k] || "").trim().slice(0, AGREE_MAX); if(s) notes[n.k] = s; });
     var plan = T.plan.filter(function(k){ return NEED_BY[k]; });
-    if(!T.id && !Object.keys(notes).length && !plan.length){ T.dirty = false; return; }
+    var summary = {};
+    NEEDS.forEach(function(n){ var s = (T.summary[n.k] || "").trim().slice(0, AGREE_MAX); if(s) summary[n.k] = s; });
+    var overall = (T.overall || "").trim().slice(0, AGREE_MAX);
+    if(!T.id && !Object.keys(notes).length && !plan.length && !Object.keys(summary).length && !overall){ T.dirty = false; return; }
     var payload = Object.assign({}, notes);
     if(plan.length) payload._plan = plan;
+    if(Object.keys(summary).length) payload._summary = summary;
+    if(overall) payload._overall = overall;
     var t = T; t.saving = true; t.dirty = false;
     talkStatus("Saving…");
     sb.rpc("love_bank_talk_save", { p_token:token, p_id:t.id, p_date:t.date, p_notes:payload }).then(function(res){
@@ -2000,7 +2061,7 @@ footer.foot p{max-width:70ch}
         talkStatus("Couldn't save just now. It'll try again when you type or move on.", true); return;
       }
       t.id = String(res.data);
-      var rec = { id:t.id, date:t.date, createdAt:"", notes:notes, plan:plan.slice() };
+      var rec = { id:t.id, date:t.date, createdAt:"", notes:notes, plan:plan.slice(), summary:summary, overall:overall };
       var found = false;
       S.talks = S.talks.map(function(x){ if(x.id === t.id){ found = true; rec.createdAt = x.createdAt; return rec; } return x; });
       if(!found){ rec.createdAt = new Date().toISOString(); S.talks.push(rec); }
@@ -2019,6 +2080,7 @@ footer.foot p{max-width:70ch}
     var t = ts[ts.length-1];
     panel.hidden = false;
     $("agreed-intro").textContent = "From your talk on " + fmt(t.date) + ". Worth a look before the next check-in.";
+    if(t.overall) box.appendChild(h("p", "agreed-overall", t.overall));
     NEEDS.forEach(function(n){
       if(!t.notes[n.k]) return;
       var d = h("div"); d.appendChild(h("h3", null, n.n)); d.appendChild(h("p", null, t.notes[n.k])); box.appendChild(d);
@@ -2309,6 +2371,351 @@ footer.foot p{max-width:70ch}
   $("notes-attach-x").addEventListener("click", function(){ setAttachment(null); $("notes-file").value = ""; });
   setInterval(function(){ if(document.visibilityState === "visible" && S.authed && $("notes-view").hidden) loadNotes(); }, 60000);
 
+  /* ---------- recording a talk and writing it up ----------
+     One phone records. Each screen of Talk it through becomes its own clip (and long screens are cut
+     every 5 minutes), so each piece of transcript knows which need was on screen. Clips go to the
+     love-bank-talk-ai function as they finish; only their text comes back, kept on this phone until
+     the write-up is saved, then deleted. Nothing is recorded without both people ticking the box. */
+  var AI_FN = SB_URL + "/functions/v1/love-bank-talk-ai";
+  var SEG_MAX_MS = 5 * 60 * 1000;
+  var RC = { status:null, on:false, paused:false, autoPaused:false, stream:null, rec:null, lbl:null, segTimer:null,
+             tick:null, startedAt:0, elapsed:0, wake:null, clips:[], seq:0, sending:false, draft:null, busy:false, msg:"", err:false, consent:false };
+
+  function canRecord(){ return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder); }
+  function transcriptKey(){ return "love-bank-talk-transcript-" + (T ? T.date : ""); }
+  function persistClips(){
+    try {
+      var keep = RC.clips.filter(function(c){ return c.status === "done"; }).map(function(c){ return { n:c.n, label:c.label, need:c.need, text:c.text }; });
+      if(keep.length) localStorage.setItem(transcriptKey(), JSON.stringify(keep)); else localStorage.removeItem(transcriptKey());
+    } catch(e){}
+  }
+  function restoreClips(){
+    RC.clips = [];
+    try {
+      var saved = JSON.parse(localStorage.getItem(transcriptKey()) || "[]");
+      if(Array.isArray(saved)) saved.forEach(function(c){
+        if(c && typeof c.text === "string" && typeof c.label === "string") RC.clips.push({ n:c.n || 0, label:c.label, need:NEED_BY[c.need] ? c.need : null, text:c.text, status:"done", blob:null });
+      });
+    } catch(e){}
+    RC.seq = RC.clips.reduce(function(m, c){ return Math.max(m, c.n); }, 0);
+  }
+  function clearTranscript(){
+    RC.clips = []; RC.draft = null;
+    try { localStorage.removeItem(transcriptKey()); } catch(e){}
+  }
+  function aiStatus(){
+    return fetch(AI_FN, { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ action:"status", token:token }) })
+      .then(function(r){ return r.json(); })
+      .then(function(j){ RC.status = (j && typeof j.transcribe === "boolean") ? j : { transcribe:false, writeup:false, error:j && j.error }; })
+      .catch(function(){ RC.status = { transcribe:false, writeup:false, error:"offline" }; })
+      .then(function(){ if(T && !$("talk-view").hidden) renderTalk(); });
+  }
+  function stepLabel(step){
+    var last = lastStep();
+    if(step <= 1) return { label:"warm-up", need:null };
+    if(step >= last) return { label:"wrap-up", need:null };
+    var n = T.list[step - 2];
+    return { label:n.n, need:n.k };
+  }
+  function pickMime(){
+    var c = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"];
+    for(var i = 0; i < c.length; i++){ try { if(MediaRecorder.isTypeSupported(c[i])) return c[i]; } catch(e){} }
+    return "";
+  }
+  function startSegment(lbl){
+    var mime = pickMime(), opts = { audioBitsPerSecond:64000 };
+    if(mime) opts.mimeType = mime;
+    var r, chunks = [];
+    try { r = new MediaRecorder(RC.stream, opts); } catch(e){ r = new MediaRecorder(RC.stream); }
+    r.ondataavailable = function(e){ if(e.data && e.data.size) chunks.push(e.data); };
+    r.onstop = function(){
+      var blob = new Blob(chunks, { type:r.mimeType || mime || "audio/mp4" });
+      if(blob.size > 4000) queueClip(blob, lbl);
+    };
+    r.start(1000);
+    RC.rec = r; RC.lbl = lbl;
+    clearTimeout(RC.segTimer);
+    RC.segTimer = setTimeout(function(){ cutSegment(null); }, SEG_MAX_MS);
+  }
+  function cutSegment(nextLbl){
+    clearTimeout(RC.segTimer);
+    var old = RC.rec; RC.rec = null;
+    if(old && old.state !== "inactive"){ try { old.stop(); } catch(e){} }
+    if(RC.on && !RC.paused) startSegment(nextLbl || RC.lbl);
+  }
+  function streamLive(){ return RC.stream && RC.stream.getAudioTracks().some(function(t){ return t.readyState === "live"; }); }
+  function getMic(){
+    if(streamLive()) return Promise.resolve(RC.stream);
+    return navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true } })
+      .then(function(s){ RC.stream = s; return s; });
+  }
+  function holdScreen(){
+    try { if(navigator.wakeLock && !RC.wake) navigator.wakeLock.request("screen").then(function(w){ RC.wake = w; w.addEventListener("release", function(){ RC.wake = null; }); }).catch(function(){}); } catch(e){}
+  }
+  function releaseScreen(){ try { if(RC.wake) RC.wake.release(); } catch(e){} RC.wake = null; }
+  function startTick(){
+    clearInterval(RC.tick);
+    RC.startedAt = Date.now();
+    RC.tick = setInterval(renderRecBar, 1000);
+  }
+  function stopTick(){
+    if(RC.startedAt) RC.elapsed += Date.now() - RC.startedAt;
+    RC.startedAt = 0; clearInterval(RC.tick); RC.tick = null;
+  }
+  function recMsg(m, err){ RC.msg = m || ""; RC.err = !!err; renderRecBar(); }
+  function startRecording(){
+    if(RC.on || !canRecord()) return;
+    recMsg("Starting the microphone…");
+    getMic().then(function(){
+      RC.on = true; RC.paused = false; RC.autoPaused = false; RC.elapsed = 0;
+      startSegment(stepLabel(T.step));
+      startTick(); holdScreen();
+      recMsg("");
+      renderTalk();
+    }).catch(function(){
+      recMsg("The microphone wasn't allowed. On iPhone: Settings → Love Bank (or Safari) → Microphone.", true);
+      renderTalk();
+    });
+  }
+  function pauseRecording(auto){
+    if(!RC.on || RC.paused) return;
+    RC.paused = true; RC.autoPaused = !!auto;
+    stopTick(); cutSegment(null); releaseScreen();
+    if(auto) recMsg("Recording paused because the screen turned off. Tap Resume to carry on.", true);
+    renderRecBar();
+  }
+  function resumeRecording(){
+    if(!RC.on || !RC.paused) return;
+    getMic().then(function(){
+      RC.paused = false; RC.autoPaused = false;
+      startSegment(stepLabel(T.step));
+      startTick(); holdScreen(); recMsg("");
+    }).catch(function(){ recMsg("Couldn't get the microphone back. Try again.", true); });
+  }
+  function stopRecording(){
+    if(!RC.on) return;
+    RC.on = false; RC.paused = false;
+    stopTick(); cutSegment(null); releaseScreen();
+    if(RC.stream){ RC.stream.getTracks().forEach(function(t){ try { t.stop(); } catch(e){} }); RC.stream = null; }
+    recMsg("");
+    if(T && !$("talk-view").hidden) renderTalk();
+  }
+  function onStepChange(){
+    if(!RC.on || RC.paused) return;
+    var next = stepLabel(T.step);
+    if(next.label !== RC.lbl.label) cutSegment(next);
+  }
+  function queueClip(blob, lbl){
+    RC.seq++;
+    RC.clips.push({ n:RC.seq, label:lbl.label, need:lbl.need, text:null, status:"queued", blob:blob });
+    sendClips();
+    renderRecBar();
+  }
+  function sendClips(){
+    if(RC.sending) return;
+    var c = RC.clips.filter(function(x){ return x.status === "queued"; })[0];
+    if(!c){ if(T && !$("talk-view").hidden && T.step === lastStep()) renderTalk(); return; }
+    RC.sending = true; c.status = "sending"; renderRecBar();
+    var fd = new FormData();
+    fd.append("token", token);
+    fd.append("file", c.blob, /webm/.test(c.blob.type) ? "clip.webm" : /ogg/.test(c.blob.type) ? "clip.ogg" : "clip.mp4");
+    fetch(AI_FN, { method:"POST", body:fd }).then(function(r){ return r.json().then(function(j){ return { ok:r.ok, j:j }; }); }).then(function(res){
+      RC.sending = false;
+      if(res.ok && typeof res.j.text === "string"){ c.text = res.j.text; c.status = "done"; c.blob = null; persistClips(); }
+      else { c.status = "error"; c.why = res.j && res.j.error; }
+      renderRecBar(); sendClips();
+    }, function(){
+      RC.sending = false; c.status = "error"; c.why = "offline"; renderRecBar();
+      if(T && !$("talk-view").hidden && T.step === lastStep()) renderTalk();
+    });
+  }
+  function retryClips(){ RC.clips.forEach(function(c){ if(c.status === "error" && c.blob) c.status = "queued"; }); sendClips(); if(T) renderTalk(); }
+  function fmtElapsed(ms){ var s = Math.floor(ms / 1000), m = Math.floor(s / 60); return m + ":" + pad(s % 60); }
+  function clipCounts(){
+    var o = { total:RC.clips.length, done:0, waiting:0, failed:0 };
+    RC.clips.forEach(function(c){ if(c.status === "done") o.done++; else if(c.status === "error") o.failed++; else o.waiting++; });
+    return o;
+  }
+  function renderRecBar(){
+    var bar = $("rec-bar"); if(!bar) return;
+    bar.innerHTML = "";
+    var cc = clipCounts();
+    if(!RC.on && !cc.total && !(RC.msg && RC.err)){ bar.hidden = true; return; }
+    bar.hidden = false;
+    var left = h("div", "rec-state");
+    if(RC.on){
+      var ms = RC.elapsed + (RC.startedAt ? Date.now() - RC.startedAt : 0);
+      left.appendChild(h("span", "rec-dot" + (RC.paused ? " paused" : ""), ""));
+      left.appendChild(h("span", "rec-time", (RC.paused ? "Paused " : "Recording ") + fmtElapsed(ms)));
+    } else {
+      left.appendChild(h("span", "rec-time", "Recorded"));
+    }
+    if(cc.total) left.appendChild(h("span", "rec-clips", cc.done + "/" + cc.total + " turned into text" + (cc.failed ? " · " + cc.failed + " failed" : "")));
+    bar.appendChild(left);
+    if(RC.on){
+      var btns = h("div", "rec-btns");
+      var pb = h("button", "btn-sub", RC.paused ? "Resume" : "Pause"); pb.type = "button";
+      pb.addEventListener("click", function(){ RC.paused ? resumeRecording() : pauseRecording(false); });
+      var sb2 = h("button", "btn-sub rec-stop", "Stop"); sb2.type = "button";
+      sb2.addEventListener("click", stopRecording);
+      btns.appendChild(pb); btns.appendChild(sb2);
+      bar.appendChild(btns);
+    }
+    if(RC.msg) bar.appendChild(h("p", "rec-msg" + (RC.err ? " err" : ""), RC.msg));
+  }
+  function recordPanel(){
+    var p = h("div", "panel rec-panel");
+    p.appendChild(h("h3", "t-h3 first", "Record the conversation"));
+    if(RC.on){
+      p.appendChild(h("p", "muted t-small", "Recording. Each need you open becomes its own clip. Keep this screen on; it stays awake while recording."));
+      return p;
+    }
+    if(!canRecord()){ p.appendChild(h("p", "muted t-small", "This browser can't record audio. Open Love Bank from your iPhone's Home Screen to record.")); return p; }
+    if(!RC.status){ p.appendChild(h("p", "muted t-small", "Checking that recording is set up…")); return p; }
+    if(!RC.status.transcribe || !RC.status.writeup){
+      var missing = [!RC.status.transcribe ? "OpenAI (turns speech into text)" : "", !RC.status.writeup ? "Anthropic (writes it up)" : ""].filter(Boolean).join(" and ");
+      p.appendChild(h("p", "muted t-small", RC.status.error === "offline" ? "Couldn't check whether recording is set up. Check your connection." : "Recording isn't set up yet: it needs the " + missing + " key added in Supabase."));
+      return p;
+    }
+    p.appendChild(h("p", "t-small", "Optional. One phone records; each need becomes its own clip and is turned into text as you go. The audio itself isn't kept. At the end, Claude drafts what you talked about and a next step for each need, and you check it together before anything is saved."));
+    p.appendChild(h("p", "muted t-small", "Keep this screen on: if the phone locks, recording pauses until you tap Resume."));
+    var lab = h("label", "rec-consent");
+    var cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = RC.consent;
+    cb.addEventListener("change", function(){ RC.consent = cb.checked; go.disabled = !cb.checked; });
+    lab.appendChild(cb); lab.appendChild(document.createTextNode(" We've both agreed to record this conversation"));
+    p.appendChild(lab);
+    var go = h("button", "btn-accent rec-go", "● Start recording"); go.type = "button"; go.disabled = !RC.consent;
+    go.addEventListener("click", startRecording);
+    p.appendChild(go);
+    return p;
+  }
+  function ratingsFor(p, k){
+    var r = latestOf(p); if(!r) return null;
+    var i = r.rank.indexOf(k);
+    return { matters:r.matters[k], met:r.met[k], rank:i >= 0 ? i + 1 : undefined, why:r.why[k] || undefined };
+  }
+  function buildSections(){
+    var out = [];
+    RC.clips.filter(function(c){ return c.status === "done"; }).sort(function(a, b){ return a.n - b.n; }).forEach(function(c){
+      var last = out[out.length - 1];
+      if(last && last.label === c.label && (last.need || null) === (c.need || null)){ last.transcript += " " + c.text; return; }
+      var s = { label:c.label, transcript:c.text };
+      if(c.need){ s.need = c.need; s.beth = ratingsFor("beth", c.need); s.david = ratingsFor("david", c.need); }
+      out.push(s);
+    });
+    return out;
+  }
+  function writeItUp(){
+    if(RC.busy) return;
+    var sections = buildSections();
+    if(!sections.some(function(s){ return s.transcript.trim(); })){ recMsg("Nothing was picked up in the recording, so there's nothing to write up.", true); renderTalk(); return; }
+    RC.busy = true; RC.msg = ""; renderTalk();
+    fetch(AI_FN, { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ action:"writeup", token:token, date:T.date, sections:sections }) })
+      .then(function(r){ return r.json().then(function(j){ return { ok:r.ok, j:j }; }); })
+      .then(function(res){
+        RC.busy = false;
+        if(res.ok && res.j && Array.isArray(res.j.needs)){
+          RC.draft = { overall:String(res.j.overall || ""), needs:res.j.needs.filter(function(x){ return NEED_BY[x.need]; }).map(function(x){
+            var cur = (T.notes[x.need] || "").trim();
+            return { need:x.need, talked:String(x.talked_about || ""), next:cur || String(x.next_step || ""), suggested:String(x.next_step || ""), had:cur };
+          }) };
+        } else {
+          var e = res.j && res.j.error;
+          RC.msg = e === "declined" ? "Claude wouldn't write this one up. Your transcript is still on this phone; you can fill in the talk by hand."
+            : e === "not_configured" || e === "bad_key" ? "The write-up isn't set up correctly: check the Anthropic key in Supabase."
+            : e === "busy" ? "Claude is busy right now. Try again in a minute."
+            : e === "not_signed_in" ? "You've been signed out. Reload and enter the password; the transcript is kept on this phone."
+            : "Couldn't write it up just now. Try again; the transcript is kept on this phone.";
+          RC.err = true;
+        }
+        renderTalk();
+      }, function(){ RC.busy = false; RC.msg = "Couldn't reach the server. Try again; the transcript is kept on this phone."; RC.err = true; renderTalk(); });
+  }
+  function saveDraft(){
+    var d = RC.draft; if(!d) return;
+    T.overall = d.overall.trim();
+    d.needs.forEach(function(x){
+      if(x.talked.trim()) T.summary[x.need] = x.talked.trim();
+      if(x.next.trim()) T.notes[x.need] = x.next.trim();
+    });
+    T.dirty = true;
+    flushTalk();
+    clearTranscript();
+    RC.msg = "Saved to this talk. The transcript has been deleted from this phone."; RC.err = false;
+    renderTalk();
+  }
+  function writeUpPanel(){
+    var p = h("div", "panel rec-panel");
+    p.appendChild(h("h3", "t-h3 first", "Write up the conversation"));
+    var cc = clipCounts();
+    if(RC.on){
+      p.appendChild(h("p", "t-small", "Stop the recording first, then Claude can write it up."));
+      var st = h("button", "btn-accent", "■ Stop recording"); st.type = "button"; st.addEventListener("click", stopRecording);
+      p.appendChild(st);
+      return p;
+    }
+    if(RC.draft) return draftPanel();
+    if(RC.msg) p.appendChild(h("p", "rec-msg" + (RC.err ? " err" : ""), RC.msg));
+    if(!cc.total){ if(!RC.msg) p.appendChild(h("p", "muted t-small", "Nothing was recorded this time.")); return p; }
+    p.appendChild(h("p", "t-small", cc.done + " of " + cc.total + " clips turned into text" + (cc.waiting ? ", " + cc.waiting + " still going…" : ".")));
+    if(cc.failed){
+      p.appendChild(h("p", "rec-msg err", cc.failed + " clip" + (cc.failed > 1 ? "s" : "") + " couldn't be turned into text."));
+      var rt = h("button", "btn-sub", "Try them again"); rt.type = "button"; rt.addEventListener("click", retryClips);
+      p.appendChild(rt);
+    }
+    var row = h("div", "rec-row");
+    var go = h("button", "btn-accent", RC.busy ? "Writing it up…" : "Write it up"); go.type = "button";
+    go.disabled = RC.busy || cc.waiting > 0 || !cc.done;
+    go.addEventListener("click", writeItUp);
+    row.appendChild(go);
+    var del = h("button", "btn-link danger", "Delete the recording"); del.type = "button";
+    del.addEventListener("click", function(){ clearTranscript(); RC.msg = "Recording deleted from this phone."; RC.err = false; renderTalk(); });
+    row.appendChild(del);
+    p.appendChild(row);
+    if(RC.busy) p.appendChild(h("p", "muted t-small", "This usually takes under a minute."));
+    return p;
+  }
+  function draftPanel(){
+    var d = RC.draft, p = h("div", "panel rec-panel draft");
+    p.appendChild(h("h3", "t-h3 first", "Check the write-up together"));
+    p.appendChild(h("p", "muted t-small", "Drafted by Claude from the recording, which can mishear things. Change anything that's wrong; nothing is saved until you tap Save."));
+    var ol = h("label", "flabel", "Overall"); ol.htmlFor = "draft-overall"; p.appendChild(ol);
+    var ot = document.createElement("textarea"); ot.id = "draft-overall"; ot.value = d.overall;
+    ot.addEventListener("input", function(){ d.overall = ot.value; });
+    p.appendChild(ot);
+    if(!d.needs.length) p.appendChild(h("p", "muted t-small", "Claude didn't find any need you talked about specifically."));
+    d.needs.forEach(function(x, i){
+      var box = h("div", "draft-need");
+      box.appendChild(h("h3", null, NEED_BY[x.need].n));
+      var l1 = h("label", "flabel", "What we talked about"); l1.htmlFor = "draft-t-" + i; box.appendChild(l1);
+      var t1 = document.createElement("textarea"); t1.id = "draft-t-" + i; t1.value = x.talked;
+      t1.addEventListener("input", function(){ x.talked = t1.value; });
+      box.appendChild(t1);
+      var l2 = h("label", "flabel", "What we'll try"); l2.htmlFor = "draft-n-" + i; box.appendChild(l2);
+      var t2 = document.createElement("textarea"); t2.id = "draft-n-" + i; t2.value = x.next;
+      t2.addEventListener("input", function(){ x.next = t2.value; });
+      box.appendChild(t2);
+      if(x.had && x.suggested && x.suggested !== x.had){
+        var sg = h("p", "draft-sug");
+        sg.appendChild(h("strong", null, "Claude suggests: ")); sg.appendChild(document.createTextNode(x.suggested + " "));
+        var use = h("button", "btn-link", "Use this instead"); use.type = "button";
+        use.addEventListener("click", function(){ x.next = x.suggested; t2.value = x.suggested; });
+        sg.appendChild(use); box.appendChild(sg);
+      }
+      p.appendChild(box);
+    });
+    var row = h("div", "rec-row");
+    var save = h("button", "btn-accent", "Save to this talk"); save.type = "button"; save.addEventListener("click", saveDraft);
+    var back = h("button", "btn-link", "Not yet"); back.type = "button"; back.addEventListener("click", function(){ RC.draft = null; renderTalk(); });
+    row.appendChild(save); row.appendChild(back);
+    p.appendChild(row);
+    return p;
+  }
+  document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState === "hidden" && RC.on && !RC.paused) pauseRecording(true);
+    if(document.visibilityState === "visible" && RC.on && !RC.paused) holdScreen();
+  });
+
   /* ---------- alerts for love notes (Web Push) ---------- */
   var PUSH_FN = SB_URL + "/functions/v1/love-bank-push";
   var AL = { reg:null, sub:null, busy:false, msg:"", err:false };
@@ -2522,6 +2929,7 @@ footer.foot p{max-width:70ch}
     }
   }
   function lock(){
+    if(typeof stopRecording === "function") stopRecording();
     S.authed = false; S.loaded = false; S.rows = []; S.talks = []; T = null;
     NT.list = []; NT.imgs = {}; NT.loaded = false; NT.sig = ""; if(NT.poll){ clearInterval(NT.poll); NT.poll = null; }
     $("app").hidden = true; $("app").classList.remove("talking"); $("app").classList.remove("noting"); $("form-view").hidden = true; $("talk-view").hidden = true; $("notes-view").hidden = true; $("dash").hidden = false; $("story").hidden = false; $("gate").hidden = false;

@@ -30,6 +30,12 @@ The site is an installable web app (`manifest.webmanifest`, icons in `icons/`). 
 
 A date-night view (header button "Talk it through"): one need per screen with both people's latest numbers, their "why" comments, generated questions for each to ask the other, and a "What we'll try" box. Agreements autosave to `public.love_bank_talks` (one row per date, `notes` = need→text) via `love_bank_talks_list` / `love_bank_talk_save`, and the latest talk shows on the tracker as "What we agreed". A shortlist for the evening is stored in the same row as `notes._plan` (ordered need keys); a talk with a plan but nothing agreed carries over to the day it's used.
 
+### Recording a talk
+
+Talk it through can record the conversation on one phone (tick "We've both agreed", then Start recording). Each screen becomes its own audio clip (cut every 5 minutes at most), sent as it finishes to the `love-bank-talk-ai` edge function, which passes it to OpenAI (`gpt-transcribe`) and returns only the text. Audio is never stored. The text waits on that phone (localStorage `love-bank-talk-transcript-<date>`) until the wrap-up screen, where "Write it up" sends it with each need's ratings to Claude (`claude-opus-5-5`, structured JSON output) and shows an editable draft: an overall note, and for each need what was talked about and a next step. Saving writes them to the talk row (`notes._overall`, `notes._summary`, and the per-need next steps) and deletes the transcript from the phone.
+
+The function needs two secrets, set in Supabase → Edge Functions → Secrets: `OPENAI_API_KEY` and `ANTHROPIC_API_KEY`. Without them the Record panel says recording isn't set up. Source: `supabase/functions/love-bank-talk-ai/` (`ai.ts` holds the prompt and the request logic). The phone must stay unlocked while recording; if the screen turns off, recording pauses.
+
 ## Password gate
 
 - One common password, no user accounts. Its bcrypt hash lives in `public.love_bank_secret` (single row).
