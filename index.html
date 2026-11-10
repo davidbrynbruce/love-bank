@@ -460,6 +460,7 @@ footer.foot p{max-width:70ch}
 .rec-btns{display:flex;gap:6px}
 .rec-btns .btn-sub{padding:6px 12px}
 .rec-stop{color:var(--bad)}
+.talk-nav .rec-jump{padding:7px 14px;font-size:14px}
 .rec-msg{flex-basis:100%;font-size:13px;color:var(--ink-soft)}
 .rec-msg.err{color:var(--bad)}
 .rec-panel{display:flex;flex-direction:column;gap:10px}
@@ -2560,6 +2561,13 @@ footer.foot p{max-width:70ch}
       sb2.addEventListener("click", stopRecording);
       btns.appendChild(pb); btns.appendChild(sb2);
       bar.appendChild(btns);
+    } else if(cc.total && T && T.step !== lastStep()){
+      /* Stopped with something recorded: a shortcut to the wrap-up screen, where the write-up happens. */
+      var jb = h("div", "rec-btns");
+      var wb = h("button", "btn-accent rec-jump", "Write it up →"); wb.type = "button";
+      wb.addEventListener("click", function(){ goTalk(lastStep()); });
+      jb.appendChild(wb);
+      bar.appendChild(jb);
     }
     if(RC.msg) bar.appendChild(h("p", "rec-msg" + (RC.err ? " err" : ""), RC.msg));
   }
