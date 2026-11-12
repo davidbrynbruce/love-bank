@@ -486,6 +486,32 @@ footer.foot p{max-width:70ch}
 .fd-prog .track{height:8px}
 .fd-pick{text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
 .fd-credit{font-size:12.5px;max-width:70ch}
+/* ---------- what's underneath ---------- */
+.undering header.band{display:none}
+#under-view{padding-top:calc(30px + env(safe-area-inset-top,0px));padding-bottom:40px}
+.u-intro{margin-bottom:8px}
+.u-last{font-size:14.5px}
+.u-lead{font-size:16px;max-width:62ch}
+.u-start{margin-top:18px}
+.u-issue{flex:1 1 160px;min-width:0;overflow-wrap:anywhere}
+.u-title{font-size:clamp(26px,5.6vw,34px);line-height:1.15;margin-bottom:14px}
+.u-setup{display:flex;flex-direction:column;gap:6px}
+.u-label{font-family:var(--font-display);font-size:23px;font-weight:500}
+.u-mt{margin-top:14px}
+.u-setup textarea{min-height:64px;font-size:16px}
+.u-seg{align-self:flex-start}
+.u-seg button{padding:10px 22px;font-size:15px}
+.u-sub{font-size:13px;font-weight:700;color:var(--ink-soft);margin-top:2px}
+.u-chips{display:flex;flex-wrap:wrap;gap:7px}
+.u-chip{font-family:inherit;font-size:13.5px;line-height:1.2;border:1px solid var(--line);border-radius:999px;padding:7px 12px;background:var(--surface);color:var(--ink)}
+button.u-chip{cursor:pointer}
+button.u-chip:hover{border-color:var(--accent)}
+.u-chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.u-other{width:100%;font-family:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:9px 12px}
+.u-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px}
+.u-sum .quote p{font-size:17px}
+.u-ok{margin-top:10px}
+.u-viewbtns{margin-top:16px}
 /* ---------- recording a talk ---------- */
 .talk-nav .rec-bar{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;padding:2px 0 8px;border-bottom:1px dashed var(--line);margin-bottom:2px}
 .rec-state{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:13.5px;min-width:0}
@@ -664,6 +690,15 @@ footer.foot p{max-width:70ch}
     <div class="fd-summary" id="fond-summary"></div>
   </section>
 
+  <section class="panel" id="under-panel" hidden>
+    <div class="panel-head">
+      <h2>What's underneath</h2>
+      <button type="button" class="btn-sub" id="under-open">Open</button>
+    </div>
+    <p class="panel-intro u-intro">For a disagreement that keeps coming back. One of you talks, the other only asks questions, then you swap. The aim is to understand each other, not to settle it.</p>
+    <div id="under-summary"></div>
+  </section>
+
   <section class="panel empty" id="empty" hidden>
     <h2>Start with a baseline</h2>
     <p class="panel-intro">Nothing recorded yet. Each of you does a check-in today, on your own, without looking at the other's answers. From then on, do one every two weeks. After two rounds this page shows whether each balance is rising or falling, which needs are moving, and where to put your effort next.</p>
@@ -820,6 +855,21 @@ footer.foot p{max-width:70ch}
   </div>
   <div class="fd-body" id="fond-body"></div>
   <p class="muted fd-credit">The idea of a daily fondness and admiration practice comes from John and Julie Gottman's work. These prompts are our own.</p>
+</main>
+
+<main class="wrap under" id="under-view" hidden>
+  <div class="fhead">
+    <button type="button" class="back" id="under-back">← Back to the tracker</button>
+    <h2>What's underneath</h2>
+  </div>
+  <div class="fd-body" id="under-body"></div>
+  <nav class="talk-nav" id="under-nav" aria-label="Move through the conversation" hidden>
+    <button type="button" class="btn-sub" id="under-prev">← Back</button>
+    <span class="talk-pos" id="under-pos"></span>
+    <button type="button" class="btn-accent" id="under-next">Next →</button>
+  </nav>
+  <p class="talk-status" id="under-status" role="status"></p>
+  <p class="muted fd-credit">The idea of taking turns as speaker and listener on a stuck issue comes from John and Julie Gottman's work. The wording, questions and themes here are our own.</p>
 </main>
 
 <main class="notes" id="notes-view" hidden>
@@ -1442,7 +1492,7 @@ footer.foot p{max-width:70ch}
     $("talk-btn").hidden = !S.authed || !S.loaded || empty;
     $("notes-btn").hidden = !S.authed;
     $("empty-btn").hidden = !S.authed;
-    renderDue(); renderBalances(); renderAgreed(); renderFondPanel();
+    renderDue(); renderBalances(); renderAgreed(); renderFondPanel(); renderUnderPanel();
     if(S.loaded && !empty){ renderTrend(); renderNeeds(); renderFocus(); renderTops(); renderHistory(); }
   }
 
@@ -3192,6 +3242,350 @@ footer.foot p{max-width:70ch}
   $("fond-open").addEventListener("click", openFond);
   $("fond-back").addEventListener("click", closeFond);
 
+  /* ---------- what's underneath: a guided talk about a stuck disagreement ----------
+     One person talks about what the issue means to them while the other only asks questions and
+     then says back what they heard; then they swap. The aim is understanding, not a solution.
+     The speaker/listener idea for stuck issues comes from John and Julie Gottman's work; the
+     wording, questions and themes here are our own. */
+  var U_THEMES = [
+    ["safe", "Feeling safe, money included"], ["choice", "Making my own choices"], ["serious", "Being taken seriously"],
+    ["fair", "Things being fair"], ["first", "Coming first with you"], ["time", "Time that's my own"],
+    ["rest", "Rest"], ["parent", "Being a good parent"], ["family", "Staying close to my family"],
+    ["notrepeat", "Not repeating how I grew up"], ["keep", "Keeping something from how I grew up"], ["work", "Work I'm proud of"],
+    ["fun", "Fun and adventure"], ["calm", "A calm, orderly home"], ["trusted", "Being trusted"],
+    ["needed", "Being needed"], ["wanted", "Being wanted"], ["nosurprise", "No surprises"],
+    ["belief", "What I believe in"], ["health", "My health"], ["older", "Getting older well"],
+    ["grow", "Room to try something new"], ["thanks", "Being appreciated"]
+  ];
+  var U_THEME_BY = {}; U_THEMES.forEach(function(t){ U_THEME_BY[t[0]] = t[1]; });
+  var U_QUESTIONS = [
+    "When did this first start to matter to you?",
+    "What does it remind you of from before we met?",
+    "What do you feel when it comes up: angry, sad, scared, brushed aside?",
+    "If it went exactly as you'd hope, what would an ordinary week look like?",
+    "What are you afraid it would mean if it never changed?",
+    "Which part of this could you never give up?",
+    "Which part could you bend on?",
+    "What do you most want me to understand?"
+  ];
+  var U_STEPS = ["setup", "talk1", "heard1", "talk2", "heard2", "close"];
+  var UN = { list:[], loaded:false, mode:"home", rec:null, viewId:null, confirm:null, dirty:false, saving:false, again:false, msg:"", err:false };
+
+  function blankSide(){ return { themes:[], other:"", heard:"", ok:false }; }
+  function cleanSide(d){
+    var s = blankSide(); if(!d || typeof d !== "object") return s;
+    if(Array.isArray(d.themes)) d.themes.forEach(function(k){ if(U_THEME_BY[k] && s.themes.indexOf(k) < 0) s.themes.push(k); });
+    s.other = str(d.other, 300); s.heard = str(d.heard, 3000); s.ok = d.ok === true;
+    return s;
+  }
+  function cleanUnder(d){
+    if(!d || !parseDate(d.date)) return null;
+    var x = d.data && typeof d.data === "object" ? d.data : {};
+    return { id:String(d.id), date:d.date, createdAt:str(d.created_at, 40), issue:str(d.issue, 500),
+             first:x.first === "david" ? "david" : "beth", beth:cleanSide(x.beth), david:cleanSide(x.david), takeaway:str(x.takeaway, 3000) };
+  }
+  function loadUnder(){
+    if(!S.authed || !sb) return;
+    sb.rpc("love_bank_under_list", { p_token:token }).then(function(res){
+      if(res.error) return;
+      UN.list = (res.data || []).map(cleanUnder).filter(Boolean);
+      UN.loaded = true;
+      if(!$("under-view").hidden){ if(UN.mode === "home" || UN.mode === "view") renderUnder(); }
+      else if(!$("dash").hidden) renderUnderPanel();
+    }, function(){});
+  }
+  function underSorted(){ return UN.list.slice().sort(byDate); }
+  function renderUnderPanel(){
+    var panel = $("under-panel"), box = $("under-summary");
+    panel.hidden = !S.authed || !S.loaded;
+    if(panel.hidden) return;
+    box.innerHTML = "";
+    var all = underSorted();
+    if(all.length){
+      var last = all[all.length - 1];
+      var p = h("p", "muted u-last"); p.appendChild(h("strong", null, "Last time, " + fmtShort(last.date) + ": "));
+      p.appendChild(document.createTextNode(last.issue || "(no title)"));
+      box.appendChild(p);
+    }
+  }
+  function openUnder(){
+    $("dash").hidden = true; $("story").hidden = true; $("form-view").hidden = true; $("talk-view").hidden = true; $("notes-view").hidden = true; $("fond-view").hidden = true;
+    $("under-view").hidden = false;
+    $("app").classList.add("undering");
+    UN.mode = "home"; UN.rec = null; UN.viewId = null; UN.confirm = null; UN.msg = ""; UN.err = false;
+    renderUnder(); loadUnder();
+    window.scrollTo(0, 0);
+  }
+  function closeUnder(){
+    flushUnder();
+    $("under-view").hidden = true; $("dash").hidden = false; $("story").hidden = false;
+    $("app").classList.remove("undering");
+    renderAll();
+    window.scrollTo(0, 0);
+  }
+  function speakerAt(step){ var r = UN.rec; return (step === "talk1" || step === "heard1") ? r.first : OTHER[r.first]; }
+  function goUnder(mode){
+    flushUnder();
+    UN.mode = mode; UN.msg = ""; UN.err = false;
+    renderUnder();
+    window.scrollTo(0, 0);
+  }
+  function underDirty(){ UN.dirty = true; }
+  function flushUnder(){ if(UN.rec && UN.dirty) saveUnder(); }
+  function saveUnder(){
+    var r = UN.rec; if(!r || !UN.dirty) return;
+    if(UN.saving){ UN.again = true; return; }
+    var side = function(s){ return { themes:s.themes.slice(), other:s.other.trim().slice(0, 300), heard:s.heard.trim().slice(0, 3000), ok:!!s.ok }; };
+    var data = { first:r.first, beth:side(r.beth), david:side(r.david), takeaway:r.takeaway.trim().slice(0, 3000) };
+    var issue = r.issue.trim().slice(0, 500);
+    var empty = !issue && !data.takeaway && ORDER.every(function(p){ return !data[p].themes.length && !data[p].other && !data[p].heard; });
+    if(!r.id && empty){ UN.dirty = false; return; }
+    UN.saving = true; UN.dirty = false;
+    sb.rpc("love_bank_under_save", { p_token:token, p_id:r.id, p_date:r.date, p_issue:issue, p_data:data }).then(function(res){
+      UN.saving = false;
+      if(res.error){
+        UN.dirty = true;
+        if(/not_found/.test(String(res.error.message || ""))) r.id = null;
+        UN.msg = isAuthError(res.error) ? "You've been signed out. Reload and enter the password." : "Couldn't save just now. It'll try again when you move on."; UN.err = true;
+        underStatus(); return;
+      }
+      r.id = String(res.data);
+      var copy = { id:r.id, date:r.date, createdAt:r.createdAt || new Date().toISOString(), issue:issue, first:r.first, beth:cleanSide(data.beth), david:cleanSide(data.david), takeaway:data.takeaway };
+      var found = false;
+      UN.list = UN.list.map(function(x){ if(x.id === r.id){ found = true; return copy; } return x; });
+      if(!found) UN.list.push(copy);
+      if(UN.mode === "home" && !$("under-view").hidden) renderUnder();
+      if(UN.again){ UN.again = false; if(UN.dirty) saveUnder(); }
+    }, function(){ UN.saving = false; UN.dirty = true; UN.msg = "Couldn't reach the server. It'll try again when you move on."; UN.err = true; underStatus(); });
+  }
+  function underStatus(){ var el = $("under-status"); if(el){ el.textContent = UN.msg; el.className = "talk-status" + (UN.err ? " err" : ""); } }
+  function startUnder(){
+    UN.rec = { id:null, date:iso(today()), createdAt:"", issue:"", first:"beth", beth:blankSide(), david:blankSide(), takeaway:"" };
+    goUnder("setup");
+  }
+  function themeChips(side, editable){
+    var wrap = h("div", "u-chips");
+    U_THEMES.forEach(function(t){
+      var on = side.themes.indexOf(t[0]) >= 0;
+      if(!editable && !on) return;
+      var b = h(editable ? "button" : "span", "u-chip" + (on ? " on" : ""), t[1]);
+      if(editable){
+        b.type = "button"; b.setAttribute("aria-pressed", String(on));
+        b.addEventListener("click", function(){
+          var i = side.themes.indexOf(t[0]);
+          if(i >= 0) side.themes.splice(i, 1); else side.themes.push(t[0]);
+          var now = side.themes.indexOf(t[0]) >= 0;
+          b.className = "u-chip" + (now ? " on" : ""); b.setAttribute("aria-pressed", String(now));
+          underDirty();
+        });
+      }
+      wrap.appendChild(b);
+    });
+    if(!editable && side.other.trim()) wrap.appendChild(h("span", "u-chip on", side.other.trim()));
+    return wrap;
+  }
+  function summaryBlock(r){
+    var wrap = h("div", "u-sum");
+    [r.first, OTHER[r.first]].forEach(function(p){
+      var s = r[p], col = h("div", "col " + p);
+      col.appendChild(h("h3", null, NAMES[p]));
+      col.appendChild(h("p", "for", "What's underneath for " + NAMES[p]));
+      if(s.themes.length || s.other.trim()) col.appendChild(themeChips(s, false));
+      else col.appendChild(h("p", "muted", "Nothing picked."));
+      if(s.heard.trim()){
+        var q = h("div", "quote");
+        q.appendChild(h("span", "ql", "What " + NAMES[OTHER[p]] + " heard" + (s.ok ? " · " + NAMES[p] + " said \"yes, that's it\"" : "")));
+        q.appendChild(h("p", null, s.heard.trim()));
+        col.appendChild(q);
+      }
+      wrap.appendChild(col);
+    });
+    return wrap;
+  }
+  function renderUnder(){
+    var body = $("under-body"), nav = $("under-nav"); body.innerHTML = "";
+    var m = UN.mode, r = UN.rec;
+    nav.hidden = U_STEPS.indexOf(m) < 0;
+
+    if(m === "home"){
+      var intro = h("section", "panel");
+      intro.appendChild(h("h3", "t-h3 first", "For a disagreement that keeps coming back"));
+      intro.appendChild(h("p", "u-lead", "Some arguments repeat because each of you is protecting something that matters, and the other can't see what it is. This isn't for settling it. One of you talks about what's underneath, the other only asks questions, then you swap."));
+      var ul = h("ul", "t-rules");
+      ["Pick a calm time. Twenty minutes each is plenty.",
+       "The one talking explains; they don't try to persuade.",
+       "The one listening asks and listens. No defending, no fixing, no \"yes, but\".",
+       "You're done when each of you can say what matters to the other. Solving it comes later."
+      ].forEach(function(t){ ul.appendChild(h("li", null, t)); });
+      intro.appendChild(ul);
+      var go = h("button", "btn-accent u-start", "Start a conversation"); go.type = "button"; go.addEventListener("click", startUnder);
+      intro.appendChild(go);
+      if(UN.msg) intro.appendChild(h("p", "fd-msg" + (UN.err ? " err" : ""), UN.msg));
+      body.appendChild(intro);
+      var past = underSorted().reverse();
+      if(past.length){
+        var pp = h("section", "panel");
+        pp.appendChild(h("h3", "t-h3 first", "Earlier conversations"));
+        var list = h("div", "hist");
+        past.forEach(function(x){
+          var row = h("div", "hrow"), main = h("div", "hmain");
+          main.appendChild(h("span", "hdate", fmt(x.date)));
+          main.appendChild(h("span", "u-issue", x.issue || "(no title)"));
+          var btns = h("div", "hbtns");
+          var ob = h("button", "btn-link", "Open"); ob.type = "button";
+          ob.addEventListener("click", function(){ UN.viewId = x.id; UN.confirm = null; goUnder("view"); });
+          btns.appendChild(ob); main.appendChild(btns); row.appendChild(main); list.appendChild(row);
+        });
+        pp.appendChild(list);
+        body.appendChild(pp);
+      } else if(!UN.loaded){
+        body.appendChild(h("p", "muted", "Loading…"));
+      }
+      return;
+    }
+
+    if(m === "view"){
+      var x = UN.list.filter(function(y){ return y.id === UN.viewId; })[0];
+      if(!x){ UN.mode = "home"; renderUnder(); return; }
+      var v = h("section", "panel");
+      v.appendChild(h("p", "t-eyebrow", fmt(x.date)));
+      v.appendChild(h("h3", "u-title", x.issue || "(no title)"));
+      v.appendChild(summaryBlock(x));
+      if(x.takeaway.trim()){ var tk = h("div", "quote"); tk.appendChild(h("span", "ql", "What you understand better now")); tk.appendChild(h("p", null, x.takeaway.trim())); v.appendChild(tk); }
+      var row2 = h("div", "rec-row u-viewbtns");
+      var bk = h("button", "btn-sub", "← All conversations"); bk.type = "button"; bk.addEventListener("click", function(){ goUnder("home"); });
+      var re = h("button", "btn-sub", "Carry on with this one"); re.type = "button";
+      re.addEventListener("click", function(){
+        UN.rec = { id:x.id, date:x.date, createdAt:x.createdAt, issue:x.issue, first:x.first, beth:cleanSide(x.beth), david:cleanSide(x.david), takeaway:x.takeaway };
+        goUnder("close");
+      });
+      row2.appendChild(bk); row2.appendChild(re);
+      if(UN.confirm === x.id){
+        var yes = h("button", "btn-link danger", "Yes, delete it"); yes.type = "button";
+        yes.addEventListener("click", function(){
+          yes.disabled = true;
+          sb.rpc("love_bank_under_delete", { p_token:token, p_id:x.id }).then(function(res){
+            if(res.error){ yes.disabled = false; UN.msg = "Couldn't delete it just now."; UN.err = true; underStatus(); return; }
+            UN.list = UN.list.filter(function(y){ return y.id !== x.id; }); UN.confirm = null;
+            UN.mode = "home"; UN.msg = "Deleted."; UN.err = false; renderUnder();
+          }, function(){ yes.disabled = false; });
+        });
+        var no = h("button", "btn-link", "Keep it"); no.type = "button"; no.addEventListener("click", function(){ UN.confirm = null; renderUnder(); });
+        row2.appendChild(yes); row2.appendChild(no);
+      } else {
+        var del = h("button", "btn-link danger", "Delete"); del.type = "button"; del.addEventListener("click", function(){ UN.confirm = x.id; renderUnder(); });
+        row2.appendChild(del);
+      }
+      v.appendChild(row2);
+      body.appendChild(v);
+      return;
+    }
+
+    var idx = U_STEPS.indexOf(m);
+    $("under-prev").textContent = idx === 0 ? "← Cancel" : "← Back";
+    $("under-next").textContent = m === "setup" ? "Begin →" : m === "talk1" || m === "talk2" ? NAMES[speakerAt(m)] + " has said it →" : m === "heard1" ? "Swap over →" : m === "heard2" ? "Finish →" : "Save and close";
+    $("under-pos").textContent = m === "setup" ? "" : m === "close" ? "Done" : (idx <= 2 ? "1 of 2" : "2 of 2");
+    underStatus();
+
+    if(m === "setup"){
+      var sp = h("section", "panel u-setup");
+      var l1 = h("label", "u-label", "What's the disagreement?"); l1.htmlFor = "under-issue"; sp.appendChild(l1);
+      sp.appendChild(h("p", "hint", "A few words, the way you'd both name it. Pick one that keeps coming back."));
+      var it = document.createElement("textarea"); it.id = "under-issue"; it.maxLength = 300; it.rows = 2; it.value = r.issue; it.placeholder = "e.g. How we spend our weekends";
+      it.addEventListener("input", function(){ r.issue = it.value; underDirty(); });
+      sp.appendChild(it);
+      sp.appendChild(h("span", "u-label u-mt", "Who talks first?"));
+      var seg = h("div", "seg u-seg"); seg.setAttribute("role", "group"); seg.setAttribute("aria-label", "Who talks first");
+      ORDER.forEach(function(p){
+        var b = h("button", p, NAMES[p]); b.type = "button"; b.setAttribute("aria-pressed", String(r.first === p));
+        b.addEventListener("click", function(){ r.first = p; underDirty(); renderUnder(); });
+        seg.appendChild(b);
+      });
+      sp.appendChild(seg);
+      sp.appendChild(h("p", "muted fd-small u-mt", NAMES[OTHER[r.first]] + " listens first, then you swap."));
+      body.appendChild(sp);
+      return;
+    }
+
+    if(m === "talk1" || m === "talk2"){
+      var sp1 = speakerAt(m), li1 = OTHER[sp1], side = r[sp1];
+      var bar = h("div", "talk-bar");
+      var bh = h("h2", "tb-name"); bh.appendChild(h("span", "tb-l", r.issue.trim() || "The disagreement")); bh.appendChild(document.createTextNode(NAMES[sp1] + " talks"));
+      bar.appendChild(bh); bar.appendChild(h("span", "tb-count", NAMES[li1] + " listens"));
+      var sec = h("section", "t-need"); sec.appendChild(bar);
+      var a = h("div", "tp " + sp1);
+      a.appendChild(h("div", "tp-head")).appendChild(h("span", "tp-name", NAMES[sp1] + ", your part"));
+      a.appendChild(h("p", null, "Say what you want here and why it matters to you. Tell the story behind it: where it comes from, what it stands for. Explain it the way you'd explain it to a friend. You're not trying to win " + NAMES[li1] + " over."));
+      a.appendChild(h("p", "u-sub", "What might be underneath? Tap any that fit."));
+      a.appendChild(themeChips(side, true));
+      var ol = h("label", "vh", "Something else underneath"); ol.htmlFor = "under-other"; a.appendChild(ol);
+      var oi = document.createElement("input"); oi.type = "text"; oi.id = "under-other"; oi.className = "u-other"; oi.maxLength = 300; oi.placeholder = "Something else…"; oi.value = side.other;
+      oi.addEventListener("input", function(){ side.other = oi.value; underDirty(); });
+      a.appendChild(oi);
+      sec.appendChild(a);
+      var b2 = h("div", "tp " + li1);
+      b2.appendChild(h("div", "tp-head")).appendChild(h("span", "tp-name", NAMES[li1] + ", your part"));
+      b2.appendChild(h("p", null, "Your only job is to understand. Listen the way you would to a friend. Don't defend yourself, don't correct the details, and don't offer a fix. You'll get your turn."));
+      var ask = h("div", "ask"); ask.appendChild(h("span", "ql", "Questions you could ask"));
+      var qul = h("ul"); U_QUESTIONS.forEach(function(q){ qul.appendChild(h("li", null, q)); }); ask.appendChild(qul);
+      b2.appendChild(ask);
+      sec.appendChild(b2);
+      body.appendChild(sec);
+      return;
+    }
+
+    if(m === "heard1" || m === "heard2"){
+      var sp2 = speakerAt(m), li2 = OTHER[sp2], sd = r[sp2];
+      var hp = h("section", "panel t-agree");
+      hp.appendChild(h("p", "t-eyebrow", NAMES[li2] + " says it back"));
+      var hl = h("label", null, "What matters to " + NAMES[sp2] + " here"); hl.htmlFor = "under-heard"; hp.appendChild(hl);
+      hp.appendChild(h("p", "hint", NAMES[li2] + ": say it out loud first, then write a line or two. Start with \"What matters to you here is…\". No \"but\"."));
+      if(sd.themes.length || sd.other.trim()) hp.appendChild(themeChips(sd, false));
+      var ht = document.createElement("textarea"); ht.id = "under-heard"; ht.maxLength = 3000; ht.value = sd.heard;
+      ht.addEventListener("input", function(){ sd.heard = ht.value; underDirty(); });
+      hp.appendChild(ht);
+      var cl = h("label", "rec-consent u-ok");
+      var cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = sd.ok;
+      cb.addEventListener("change", function(){ sd.ok = cb.checked; underDirty(); });
+      cl.appendChild(cb); cl.appendChild(document.createTextNode(" " + NAMES[sp2] + " says: yes, that's it"));
+      hp.appendChild(cl);
+      hp.appendChild(h("p", "muted fd-small", "If it isn't quite right, " + NAMES[sp2] + " says what's missing and " + NAMES[li2] + " tries again."));
+      body.appendChild(hp);
+      return;
+    }
+
+    /* close */
+    var cp = h("section", "panel");
+    cp.appendChild(h("p", "t-eyebrow", fmt(r.date)));
+    cp.appendChild(h("h3", "u-title", r.issue.trim() || "The disagreement"));
+    cp.appendChild(summaryBlock(r));
+    body.appendChild(cp);
+    var tp = h("section", "panel t-agree");
+    var tl = h("label", null, "What you understand better now"); tl.htmlFor = "under-take"; tp.appendChild(tl);
+    tp.appendChild(h("p", "hint", "Optional. One line each is plenty."));
+    var tt = document.createElement("textarea"); tt.id = "under-take"; tt.maxLength = 3000; tt.value = r.takeaway;
+    tt.addEventListener("input", function(){ r.takeaway = tt.value; underDirty(); });
+    tp.appendChild(tt);
+    tp.appendChild(h("p", "muted fd-small", "You haven't settled it, and that's fine. Agree when you'll come back to it, now that you each know what the other is protecting."));
+    body.appendChild(tp);
+  }
+  $("under-open").addEventListener("click", openUnder);
+  $("under-back").addEventListener("click", closeUnder);
+  $("under-prev").addEventListener("click", function(){
+    var i = U_STEPS.indexOf(UN.mode);
+    if(i <= 0){ flushUnder(); UN.rec = null; goUnder("home"); } else goUnder(U_STEPS[i - 1]);
+  });
+  $("under-next").addEventListener("click", function(){
+    var i = U_STEPS.indexOf(UN.mode); if(i < 0) return;
+    if(UN.mode === "setup" && !UN.rec.issue.trim()){ UN.msg = "Give the disagreement a few words first."; UN.err = true; underStatus(); try { $("under-issue").focus(); } catch(e){} return; }
+    if(i === U_STEPS.length - 1){
+      UN.dirty = true; flushUnder();
+      UN.rec = null; UN.mode = "home"; UN.msg = "Saved."; UN.err = false; renderUnder(); window.scrollTo(0, 0);
+      return;
+    }
+    goUnder(U_STEPS[i + 1]);
+  });
+
   /* ---------- dashboard events ---------- */
   $("new-btn").addEventListener("click", function(){ openForm(null); });
   $("empty-btn").addEventListener("click", function(){ openForm(null); });
@@ -3244,6 +3638,7 @@ footer.foot p{max-width:70ch}
       loadTalks();
       loadNotes();
       loadFond();
+      loadUnder();
     }, function(){
       loading = false; clearTimeout(slow);
       S.loaded = true; note("Couldn't reach the check-ins. Check your connection and reload."); renderAll();
@@ -3264,8 +3659,9 @@ footer.foot p{max-width:70ch}
     if(typeof stopRecording === "function") stopRecording();
     S.authed = false; S.loaded = false; S.rows = []; S.talks = []; T = null;
     FD.rows = []; FD.loaded = false; FD.forPerson = null;
+    UN.list = []; UN.loaded = false; UN.rec = null; UN.mode = "home";
     NT.list = []; NT.imgs = {}; NT.loaded = false; NT.sig = ""; if(NT.poll){ clearInterval(NT.poll); NT.poll = null; }
-    $("app").hidden = true; $("app").classList.remove("talking"); $("app").classList.remove("noting"); $("app").classList.remove("fonding"); $("fond-view").hidden = true; $("form-view").hidden = true; $("talk-view").hidden = true; $("notes-view").hidden = true; $("dash").hidden = false; $("story").hidden = false; $("gate").hidden = false;
+    $("app").hidden = true; $("app").classList.remove("talking"); $("app").classList.remove("noting"); $("app").classList.remove("fonding"); $("fond-view").hidden = true; $("app").classList.remove("undering"); $("under-view").hidden = true; $("form-view").hidden = true; $("talk-view").hidden = true; $("notes-view").hidden = true; $("dash").hidden = false; $("story").hidden = false; $("gate").hidden = false;
     $("gate-pw").value = "";
     setTimeout(function(){ try { $("gate-pw").focus(); } catch(e){} }, 0);
   }
@@ -3300,7 +3696,8 @@ footer.foot p{max-width:70ch}
     if(t) sb.rpc("love_bank_logout", { p_token:t }).then(function(){}, function(){});
   });
   document.addEventListener("visibilitychange", function(){
-    if(document.visibilityState === "visible" && S.authed && $("form-view").hidden && $("talk-view").hidden && $("notes-view").hidden && $("fond-view").hidden) load();
+    if(document.visibilityState === "visible" && S.authed && $("form-view").hidden && $("talk-view").hidden && $("notes-view").hidden && $("fond-view").hidden && $("under-view").hidden) load();
+    if(document.visibilityState === "hidden") flushUnder();
     if(document.visibilityState === "visible" && S.authed && !$("notes-view").hidden){ loadNotes(); markRead(); }
     if(document.visibilityState === "hidden") flushTalk();
   });
