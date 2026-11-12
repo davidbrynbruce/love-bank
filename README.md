@@ -11,6 +11,10 @@ Each need also has an optional "why" comment (stored in `notes.why` as need→te
 | Database | Supabase project `family-finance`, ref `zijtjfdpvkfdxflutmpc` (shared with the finance app) |
 | Table | `public.love_bank_checkins` — one row per person per check-in: `person` (beth/david), `date`, `matters`/`met` (jsonb need→0-10), `rank` (jsonb array of need keys), `notes` (jsonb) |
 
+## Fondness, a little each day
+
+A 35-day exercise (seven themed weeks, five days each): one thought to carry around and one small thing to do, each person on their own. It has a panel on the tracker and its own screen. The idea of a daily fondness and admiration practice comes from John and Julie Gottman's work; the prompts in `index.html` (`FOND`, `FOND_WEEKS`) are original, not theirs, and the day numbers match the Gottman sheet's layout (week N, day M) if you want to follow that alongside. Progress and answers live in `public.love_bank_fondness` (one row per person per day) via `love_bank_fondness_list` and `love_bank_fondness_save`. The list returns everyone's progress but written answers only for the person asking; since the password is shared, that's a courtesy, not a lock. "Done, and send" also posts the answer to Love notes.
+
 ## Love notes
 
 A message thread between the two of you ("Love notes" in the header): text, quick emoji, photos and memes. Each phone is asked once who's using it (localStorage `love-bank-me`). Notes live in `public.love_bank_notes`; pictures are shrunk on the phone (JPEG, max 1600 px) or kept as-is for GIFs up to 3 MB, and stored inline as data URLs, fetched one at a time. Functions: `love_bank_notes_list`, `love_bank_note_send`, `love_bank_note_image`, `love_bank_notes_read` (marks the other person's notes seen), `love_bank_note_delete` (own notes only). The thread polls every 8 seconds while open and every minute otherwise.

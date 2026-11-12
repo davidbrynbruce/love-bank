@@ -449,6 +449,43 @@ footer.foot p{max-width:70ch}
 .agreed h3{font-size:20px;margin-bottom:2px}
 .agreed p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px}
 
+/* ---------- daily fondness exercise ---------- */
+.fonding header.band{display:none}
+#fond-view{padding-top:calc(30px + env(safe-area-inset-top,0px))}
+.fd-body{display:flex;flex-direction:column;gap:18px}
+.fd-summary{display:flex;flex-direction:column;gap:10px}
+.fd-today-l{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.fd-thought{font-family:var(--font-display);font-style:italic;font-size:22px;line-height:1.3;max-width:60ch}
+.fd-thought.big{font-size:clamp(27px,6.4vw,36px);line-height:1.2;margin:4px 0 14px}
+.fd-task{font-size:17px;line-height:1.5;margin-bottom:16px;max-width:60ch}
+.fd-task-l{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;margin-bottom:2px}
+.fd-opt{text-transform:none;letter-spacing:0;font-weight:400}
+.fd-card textarea{min-height:110px;font-size:16px}
+.fd-btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.fd-btns .btn-sub{padding:11px 14px;font-size:14.5px}
+.fd-btns button[disabled]{opacity:.55;cursor:default}
+.fd-msg{font-size:13.5px;color:var(--good);margin-top:8px}
+.fd-msg:empty{display:none}
+.fd-msg.err{color:var(--bad)}
+.fd-small{font-size:13.5px}
+.fd-grid{display:flex;flex-direction:column;margin-top:10px}
+.fd-week{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 12px;align-items:baseline;padding:11px 0;border-top:1px solid var(--line)}
+.fd-week-n{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.fd-week-t{font-family:var(--font-display);font-size:19px}
+.fd-dots{grid-column:1/-1;display:flex;gap:8px;margin-top:6px}
+.fd-dot{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:14px;font-weight:700;cursor:pointer;font-variant-numeric:tabular-nums}
+.fd-dot:hover{border-color:var(--accent);color:var(--accent)}
+.fd-dot.done{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.fd-dot.next{border-style:dashed;border-color:var(--accent);color:var(--accent)}
+.fd-dot.cur{box-shadow:0 0 0 3px var(--accent-soft),0 0 0 4px var(--accent)}
+.fd-bars{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.fd-prog{display:grid;grid-template-columns:52px minmax(0,1fr) 44px;gap:10px;align-items:center;font-size:13.5px}
+.fd-prog-name{font-weight:700}
+.fd-prog-name.beth{color:var(--beth)} .fd-prog-name.david{color:var(--david)}
+.fd-prog-n{color:var(--ink-soft);text-align:right;font-variant-numeric:tabular-nums}
+.fd-prog .track{height:8px}
+.fd-pick{text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.fd-credit{font-size:12.5px;max-width:70ch}
 /* ---------- recording a talk ---------- */
 .talk-nav .rec-bar{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;padding:2px 0 8px;border-bottom:1px dashed var(--line);margin-bottom:2px}
 .rec-state{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:13.5px;min-width:0}
@@ -619,6 +656,14 @@ footer.foot p{max-width:70ch}
 
   <section class="balances" id="balances" aria-label="Current balances"></section>
 
+  <section class="panel" id="fond-panel" hidden>
+    <div class="panel-head">
+      <h2>Fondness, a little each day</h2>
+      <button type="button" class="btn-sub" id="fond-open">Open</button>
+    </div>
+    <div class="fd-summary" id="fond-summary"></div>
+  </section>
+
   <section class="panel empty" id="empty" hidden>
     <h2>Start with a baseline</h2>
     <p class="panel-intro">Nothing recorded yet. Each of you does a check-in today, on your own, without looking at the other's answers. From then on, do one every two weeks. After two rounds this page shows whether each balance is rising or falling, which needs are moving, and where to put your effort next.</p>
@@ -765,6 +810,16 @@ footer.foot p{max-width:70ch}
     <button type="button" class="btn-accent" id="talk-next">Next →</button>
   </nav>
   <p class="talk-status" id="talk-status" role="status"></p>
+</main>
+
+<main class="wrap fond" id="fond-view" hidden>
+  <div class="fhead">
+    <button type="button" class="back" id="fond-back">← Back to the tracker</button>
+    <h2>Fondness, a little each day</h2>
+    <p class="muted">Seven weeks, five days a week. Each day has one thought to carry around and one small thing to do. Do it on your own; it takes a couple of minutes.</p>
+  </div>
+  <div class="fd-body" id="fond-body"></div>
+  <p class="muted fd-credit">The idea of a daily fondness and admiration practice comes from John and Julie Gottman's work. These prompts are our own.</p>
 </main>
 
 <main class="notes" id="notes-view" hidden>
@@ -1387,7 +1442,7 @@ footer.foot p{max-width:70ch}
     $("talk-btn").hidden = !S.authed || !S.loaded || empty;
     $("notes-btn").hidden = !S.authed;
     $("empty-btn").hidden = !S.authed;
-    renderDue(); renderBalances(); renderAgreed();
+    renderDue(); renderBalances(); renderAgreed(); renderFondPanel();
     if(S.loaded && !empty){ renderTrend(); renderNeeds(); renderFocus(); renderTops(); renderHistory(); }
   }
 
@@ -2869,6 +2924,274 @@ footer.foot p{max-width:70ch}
   }
   initAlerts();
 
+  /* ---------- daily fondness exercise ----------
+     Seven weeks, five days a week: one thought to hold and one small thing to do, each person on
+     their own. The idea of a daily fondness-and-admiration practice comes from John and Julie
+     Gottman's work; these prompts are our own. {o} is replaced with the other person's name. */
+  var FOND_WEEKS = [
+    "What I love about you", "On the same side", "Our story", "Everyday life",
+    "Gratitude", "Curiosity and fun", "Looking ahead"
+  ];
+  var FOND = [
+    ["There are things about {o} I'd miss within a day.", "Name one small habit of {o}'s that makes you smile."],
+    ["{o} is good at things I'm not.", "Write down one skill of {o}'s that you rely on."],
+    ["I still notice {o} across a room.", "Name one thing about how {o} looks or moves that you like."],
+    ["{o} has a good heart.", "Recall one kind thing you've seen {o} do for someone else."],
+    ["I'd pick {o}'s company.", "Think of something that's better simply because {o} is there."],
+
+    ["We want the same things where it counts.", "Write down one value you both hold without ever having to discuss it."],
+    ["{o} has my back.", "Recall a time {o} stood up for you or quietly covered for you."],
+    ["We've built something.", "Name one thing in your life that exists only because the two of you made it."],
+    ["{o} knows the real me.", "Think of something about you that only {o} really understands."],
+    ["We decide well when we decide together.", "Recall one decision you're glad you made as a pair."],
+
+    ["I remember how this started.", "Write three details from the first weeks you knew {o}."],
+    ["We've had days I'd happily relive.", "Pick one of them and write a few lines about it."],
+    ["I remember choosing {o}.", "Describe the moment you knew this was serious."],
+    ["We have our own language.", "Write down a private joke or phrase that only the two of you get."],
+    ["There are photos of us I love.", "Find one, and send it to {o} as a love note."],
+
+    ["Home is easier because {o} is in it.", "Name one thing {o} does around the house that you'd notice the day it stopped."],
+    ["{o} carries a lot.", "List three things {o} handled this week."],
+    ["{o} is a good parent.", "Recall a moment with the kids that made you proud of {o}."],
+    ["An ordinary evening with {o} is a good evening.", "Describe one small routine of yours that you'd keep forever."],
+    ["{o} makes hard days lighter.", "Recall a time {o} helped you after a rough day, and what they did."],
+
+    ["I'm lucky.", "Name one way your life is better than it would have been without {o}."],
+    ["{o} has changed me for the better.", "Write down one thing you do differently because of {o}."],
+    ["We've come through hard things.", "Recall a difficult stretch, and one thing {o} did that helped."],
+    ["{o} puts up with me.", "Name one quirk of your own that {o} handles with grace."],
+    ["I don't say thank you enough.", "Thank {o} today for something specific, out loud or in a love note."],
+
+    ["{o} still surprises me.", "Think of something you learned about {o} in the last year."],
+    ["There's more of {o} to know.", "Come up with one question you've never asked {o}, and ask it."],
+    ["We laugh at the same things.", "Recall the last time the two of you couldn't stop laughing."],
+    ["We're good company for each other.", "Suggest one thing to do together this week that's purely for fun."],
+    ["{o} has things they love.", "Ask {o} about one of their interests, and just listen for five minutes."],
+
+    ["I'd choose {o} again.", "Write one sentence on why."],
+    ["We have more good years coming.", "Name something you're looking forward to doing together."],
+    ["We're a team that gets things done.", "List three things the two of you have achieved together."],
+    ["{o} deserves to be celebrated.", "Plan one small treat or surprise for {o} this week."],
+    ["I'm proud of us.", "Tell {o} one thing about your relationship that you're proud of."]
+  ];
+  var FD = { rows:[], loaded:false, open:null, more:false, busy:false, msg:"", err:false };
+
+  function fondText(i, p){ var o = NAMES[OTHER[p]]; return [FOND[i][0].replace(/\{o\}/g, o), FOND[i][1].replace(/\{o\}/g, o)]; }
+  function fondRow(p, day){ return FD.rows.filter(function(r){ return r.person === p && r.day === day; })[0] || null; }
+  function fondDone(p){ return FD.rows.filter(function(r){ return r.person === p && r.doneAt; }); }
+  function fondNext(p){ for(var d = 1; d <= FOND.length; d++){ var r = fondRow(p, d); if(!r || !r.doneAt) return d; } return null; }
+  function fondDoneToday(p){
+    var t = iso(today());
+    return fondDone(p).filter(function(r){ var d = new Date(r.doneAt); return !isNaN(d.getTime()) && iso(d) === t; }).sort(function(a, b){ return b.day - a.day; })[0] || null;
+  }
+  function cleanFond(d){
+    if(!d || (d.person !== "beth" && d.person !== "david")) return null;
+    var day = Number(d.day); if(!(day >= 1 && day <= FOND.length)) return null;
+    return { person:d.person, day:day, answer:str(d.answer, 4000), doneAt:d.done_at ? str(d.done_at, 40) : null, sentAt:d.sent_at ? str(d.sent_at, 40) : null };
+  }
+  function loadFond(){
+    if(!S.authed || !sb) return;
+    var asked = NT.me || "";
+    sb.rpc("love_bank_fondness_list", { p_token:token, p_person:asked }).then(function(res){
+      if(res.error) return;
+      FD.rows = (res.data || []).map(cleanFond).filter(Boolean);
+      FD.loaded = true; FD.forPerson = asked;
+      if(!$("fond-view").hidden) renderFond(); else if(!$("dash").hidden) renderFondPanel();
+    }, function(){});
+  }
+  function progressBar(p){
+    var n = fondDone(p).length, w = h("div", "fd-prog");
+    w.appendChild(h("span", "fd-prog-name " + p, NAMES[p]));
+    var tr = h("div", "track"); var f = h("div", "fill"); f.style.width = (n / FOND.length * 100) + "%"; f.style.background = "var(--" + p + ")"; tr.appendChild(f);
+    tr.setAttribute("role", "img"); tr.setAttribute("aria-label", NAMES[p] + ": " + n + " of " + FOND.length + " days done");
+    w.appendChild(tr);
+    w.appendChild(h("span", "fd-prog-n", n + "/" + FOND.length));
+    return w;
+  }
+  function renderFondPanel(){
+    var panel = $("fond-panel"), box = $("fond-summary");
+    panel.hidden = !S.authed || !S.loaded;
+    if(panel.hidden) return;
+    box.innerHTML = "";
+    var me = NT.me;
+    if(me && FD.loaded){
+      var next = fondNext(me), today1 = fondDoneToday(me);
+      if(next === null){
+        box.appendChild(h("p", "fd-today-l", "All 35 days done"));
+        box.appendChild(h("p", "fd-thought", "You've finished the seven weeks. You can reread your answers any time."));
+      } else if(today1){
+        box.appendChild(h("p", "fd-today-l", "Done for today · day " + today1.day + " of " + FOND.length));
+        box.appendChild(h("p", "muted", "Day " + next + " is ready whenever you are, tomorrow or now."));
+      } else {
+        box.appendChild(h("p", "fd-today-l", "Today · day " + next + " of " + FOND.length + " · " + FOND_WEEKS[Math.floor((next - 1) / 5)]));
+        box.appendChild(h("p", "fd-thought", fondText(next - 1, me)[0]));
+      }
+    } else {
+      box.appendChild(h("p", "muted", "One thought and one small thing to do each day, five days a week for seven weeks. Each of you does your own."));
+    }
+    var bars = h("div", "fd-bars");
+    ORDER.forEach(function(p){ bars.appendChild(progressBar(p)); });
+    box.appendChild(bars);
+    $("fond-open").textContent = me && FD.loaded && fondNext(me) !== null && !fondDoneToday(me) ? "Do today's" : "Open";
+  }
+  function openFond(){
+    $("dash").hidden = true; $("story").hidden = true; $("form-view").hidden = true; $("talk-view").hidden = true; $("notes-view").hidden = true;
+    $("fond-view").hidden = false;
+    $("app").classList.add("fonding");
+    FD.open = null; FD.more = false; FD.msg = ""; FD.err = false;
+    if(FD.forPerson !== (NT.me || "")) FD.loaded = false;
+    renderFond();
+    loadFond();
+    window.scrollTo(0, 0);
+  }
+  function closeFond(){
+    $("fond-view").hidden = true; $("dash").hidden = false; $("story").hidden = false;
+    $("app").classList.remove("fonding");
+    renderAll();
+    window.scrollTo(0, 0);
+  }
+  function fondSave(day, answer, done, send){
+    if(FD.busy) return;
+    var me = NT.me; if(!me) return;
+    FD.busy = true; FD.msg = "Saving…"; FD.err = false; renderFond();
+    var text = answer.trim().slice(0, 4000);
+    var step = send && text
+      ? sb.rpc("love_bank_note_send", { p_token:token, p_sender:me, p_body:"💛 From my fondness exercise, day " + day + ":\n" + text, p_image:null })
+      : Promise.resolve({ error:null });
+    step.then(function(r1){
+      if(r1.error) throw r1.error;
+      return sb.rpc("love_bank_fondness_save", { p_token:token, p_person:me, p_day:day, p_answer:text, p_done:done, p_sent:!!(send && text) });
+    }).then(function(r2){
+      FD.busy = false;
+      if(r2.error) throw r2.error;
+      var row = fondRow(me, day), now = new Date().toISOString();
+      if(!row){ row = { person:me, day:day, answer:"", doneAt:null, sentAt:null }; FD.rows.push(row); }
+      row.answer = text; row.doneAt = done ? (row.doneAt || now) : null; if(send && text) row.sentAt = row.sentAt || now;
+      FD.msg = send && text ? "Saved, and sent to " + NAMES[OTHER[me]] + " as a love note." : "Saved."; FD.err = false;
+      FD.open = null; FD.more = false;
+      if(send && text) loadNotes();
+      renderFond();
+      window.scrollTo(0, 0);
+    }).catch(function(e){
+      FD.busy = false;
+      FD.msg = isAuthError(e) ? "You've been signed out. Reload and enter the password." : "Couldn't save just now. Your answer is still here; try again."; FD.err = true;
+      renderFond();
+    });
+  }
+  function fondDayCard(day, me){
+    var t = fondText(day - 1, me), row = fondRow(me, day), isDone = !!(row && row.doneAt), other = NAMES[OTHER[me]];
+    var card = h("section", "panel fd-card");
+    card.appendChild(h("p", "t-eyebrow", "Week " + Math.ceil(day / 5) + " · " + FOND_WEEKS[Math.floor((day - 1) / 5)] + " · day " + day + " of " + FOND.length));
+    card.appendChild(h("p", "fd-thought big", t[0]));
+    var task = h("p", "fd-task"); task.appendChild(h("span", "fd-task-l", "Today")); task.appendChild(document.createTextNode(t[1]));
+    card.appendChild(task);
+    var lab = h("label", "flabel", "Your answer"); lab.htmlFor = "fond-answer";
+    lab.appendChild(h("span", "fd-opt", " optional, and only you see it unless you send it"));
+    card.appendChild(lab);
+    var ta = document.createElement("textarea"); ta.id = "fond-answer"; ta.maxLength = 4000; ta.value = row ? row.answer : "";
+    card.appendChild(ta);
+    var btns = h("div", "fd-btns");
+    var done = h("button", "btn-accent", isDone ? "Save" : "Done for today"); done.type = "button"; done.disabled = FD.busy;
+    done.addEventListener("click", function(){ fondSave(day, ta.value, true, false); });
+    btns.appendChild(done);
+    var send = h("button", "btn-sub fd-send", (row && row.sentAt ? "Send again to " : "Done, and send to ") + other + " 💌"); send.type = "button"; send.disabled = FD.busy;
+    send.addEventListener("click", function(){
+      if(!ta.value.trim()){ FD.msg = "Write something first, then send it."; FD.err = true; renderFondMsg(); ta.focus(); return; }
+      fondSave(day, ta.value, true, true);
+    });
+    btns.appendChild(send);
+    if(isDone){
+      var undo = h("button", "btn-link", "Mark as not done"); undo.type = "button"; undo.disabled = FD.busy;
+      undo.addEventListener("click", function(){ fondSave(day, ta.value, false, false); });
+      btns.appendChild(undo);
+    }
+    card.appendChild(btns);
+    var m = h("p", "fd-msg"); m.id = "fond-msg"; card.appendChild(m);
+    if(row && row.sentAt) card.appendChild(h("p", "muted fd-small", "Sent to " + other + " as a love note."));
+    return card;
+  }
+  function renderFondMsg(){ var m = $("fond-msg"); if(m){ m.textContent = FD.msg; m.className = "fd-msg" + (FD.err ? " err" : ""); } }
+  function renderFond(){
+    var body = $("fond-body"); body.innerHTML = "";
+    var me = NT.me;
+    if(!me){
+      var pick = h("section", "panel fd-pick");
+      pick.appendChild(h("p", "n-pick-q", "Who's using this phone?"));
+      var pb = h("div", "n-pick-btns");
+      ORDER.forEach(function(p){
+        var b = h("button", "btn-sub n-pick-" + p, "I'm " + NAMES[p]); b.type = "button";
+        b.addEventListener("click", function(){
+          NT.me = p; try { localStorage.setItem(ME_KEY, p); } catch(e){}
+          renderMe(); renderNotesBadge(); FD.loaded = false; renderFond(); loadFond();
+        });
+        pb.appendChild(b);
+      });
+      pick.appendChild(pb);
+      pick.appendChild(h("p", "muted n-pick-sub", "Each of you does your own, so the app needs to know whose answers these are."));
+      body.appendChild(pick);
+      return;
+    }
+    if(!FD.loaded){ body.appendChild(h("p", "muted", "Loading…")); return; }
+    var next = fondNext(me), today1 = fondDoneToday(me);
+    var show = FD.open || ((today1 && !FD.more) ? null : next);
+
+    if(show){
+      body.appendChild(fondDayCard(show, me));
+      renderFondMsg();
+    } else {
+      var rest = h("section", "panel fd-card");
+      if(next === null){
+        rest.appendChild(h("p", "t-eyebrow", "Finished"));
+        rest.appendChild(h("p", "fd-thought big", "All 35 days done."));
+        rest.appendChild(h("p", "muted", "Tap any day below to reread what you wrote."));
+      } else {
+        rest.appendChild(h("p", "t-eyebrow", "Day " + today1.day + " of " + FOND.length));
+        rest.appendChild(h("p", "fd-thought big", "Done for today."));
+        rest.appendChild(h("p", "muted", "Come back tomorrow for day " + next + ". One a day works best: the point is to carry the thought around."));
+        var moreB = h("button", "btn-link", "Do day " + next + " now"); moreB.type = "button";
+        moreB.addEventListener("click", function(){ FD.more = true; FD.msg = ""; renderFond(); });
+        rest.appendChild(moreB);
+      }
+      if(FD.msg) rest.appendChild(h("p", "fd-msg" + (FD.err ? " err" : ""), FD.msg));
+      body.appendChild(rest);
+    }
+
+    var prog = h("section", "panel");
+    prog.appendChild(h("h3", "t-h3 first", "Your seven weeks"));
+    prog.appendChild(h("p", "muted fd-small", "Tap a day to open it. You can go back and change an answer any time."));
+    var grid = h("div", "fd-grid");
+    FOND_WEEKS.forEach(function(name, w){
+      var rowEl = h("div", "fd-week");
+      rowEl.appendChild(h("span", "fd-week-n", "Week " + (w + 1)));
+      rowEl.appendChild(h("span", "fd-week-t", name));
+      var dots = h("div", "fd-dots");
+      for(var i = 1; i <= 5; i++){
+        (function(day){
+          var r = fondRow(me, day), isDone = !!(r && r.doneAt);
+          var b = h("button", "fd-dot" + (isDone ? " done" : "") + (day === show ? " cur" : "") + (day === next && !isDone ? " next" : ""), isDone ? "✓" : String(day)); b.type = "button";
+          b.setAttribute("aria-label", "Day " + day + (isDone ? ", done" : day === next ? ", next" : ""));
+          b.addEventListener("click", function(){ FD.open = day; FD.msg = ""; FD.err = false; renderFond(); window.scrollTo(0, 0); });
+          dots.appendChild(b);
+        })(w * 5 + i);
+      }
+      rowEl.appendChild(dots);
+      grid.appendChild(rowEl);
+    });
+    prog.appendChild(grid);
+    body.appendChild(prog);
+
+    var both = h("section", "panel");
+    both.appendChild(h("h3", "t-h3 first", "How you're both doing"));
+    var bars = h("div", "fd-bars");
+    ORDER.forEach(function(p){ bars.appendChild(progressBar(p)); });
+    both.appendChild(bars);
+    both.appendChild(h("p", "muted fd-small", "You see each other's progress, not each other's answers."));
+    body.appendChild(both);
+  }
+  $("fond-open").addEventListener("click", openFond);
+  $("fond-back").addEventListener("click", closeFond);
+
   /* ---------- dashboard events ---------- */
   $("new-btn").addEventListener("click", function(){ openForm(null); });
   $("empty-btn").addEventListener("click", function(){ openForm(null); });
@@ -2920,6 +3243,7 @@ footer.foot p{max-width:70ch}
       if($("form-view").hidden && $("talk-view").hidden) renderAll(); else renderDue();
       loadTalks();
       loadNotes();
+      loadFond();
     }, function(){
       loading = false; clearTimeout(slow);
       S.loaded = true; note("Couldn't reach the check-ins. Check your connection and reload."); renderAll();
@@ -2939,8 +3263,9 @@ footer.foot p{max-width:70ch}
   function lock(){
     if(typeof stopRecording === "function") stopRecording();
     S.authed = false; S.loaded = false; S.rows = []; S.talks = []; T = null;
+    FD.rows = []; FD.loaded = false; FD.forPerson = null;
     NT.list = []; NT.imgs = {}; NT.loaded = false; NT.sig = ""; if(NT.poll){ clearInterval(NT.poll); NT.poll = null; }
-    $("app").hidden = true; $("app").classList.remove("talking"); $("app").classList.remove("noting"); $("form-view").hidden = true; $("talk-view").hidden = true; $("notes-view").hidden = true; $("dash").hidden = false; $("story").hidden = false; $("gate").hidden = false;
+    $("app").hidden = true; $("app").classList.remove("talking"); $("app").classList.remove("noting"); $("app").classList.remove("fonding"); $("fond-view").hidden = true; $("form-view").hidden = true; $("talk-view").hidden = true; $("notes-view").hidden = true; $("dash").hidden = false; $("story").hidden = false; $("gate").hidden = false;
     $("gate-pw").value = "";
     setTimeout(function(){ try { $("gate-pw").focus(); } catch(e){} }, 0);
   }
@@ -2975,7 +3300,7 @@ footer.foot p{max-width:70ch}
     if(t) sb.rpc("love_bank_logout", { p_token:t }).then(function(){}, function(){});
   });
   document.addEventListener("visibilitychange", function(){
-    if(document.visibilityState === "visible" && S.authed && $("form-view").hidden && $("talk-view").hidden && $("notes-view").hidden) load();
+    if(document.visibilityState === "visible" && S.authed && $("form-view").hidden && $("talk-view").hidden && $("notes-view").hidden && $("fond-view").hidden) load();
     if(document.visibilityState === "visible" && S.authed && !$("notes-view").hidden){ loadNotes(); markRead(); }
     if(document.visibilityState === "hidden") flushTalk();
   });
